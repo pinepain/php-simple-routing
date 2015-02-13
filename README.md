@@ -7,6 +7,18 @@
 This is yet another HTTP request routing implementation which build with simplicity and flexibility in mind. In fact it
 is set of tools to build your own HTTP routing stack for your specific needs. 
 
+In this project I compiled best known experience in routing by combining simplicity, flexibility and speed.
+Special thanks to [Nikita Popov](https://github.com/nikic) an his [FastRoute](https://github.com/nikic/FastRoute) routing engine implementation and his
+perfect [blog post explaining how the implementation works and why it is fast](http://nikic.github.io/2014/02/18/Fast-request-routing-using-regular-expressions.html).
+
+I hope we can merge my features to his implementation, but as FastRoute is experimental (at some parts) stuff and tries
+to do full routing cycle (playing with HTTP request method, which I prefer let to end-user) it may take a while.
+ 
+There is `bench.php` file which gives you a brief numbers how fast this implementation to other implementations. You can
+run `composer require "nikic/fast-route : *@dev" && php bench.php` to compare with FastRoute implementation which is the
+one of the fastest. Some performance degradation (about 10%) probably is the result of extra code related to extended 
+parameters support (optional parameters, default values, etc.).
+
 # Features:
 
  - best practices from routing experience
@@ -15,7 +27,7 @@ is set of tools to build your own HTTP routing stack for your specific needs.
  - custom types
  - flexibility (yeah, someone may say that it is so flexible that you have to give it a support)
  - lose coupled code (at least wannabe)
- - speed (faster than all what you saw before, marketing guys may add "close to bare metal", but that is not true as all we know)
+ - speed (one of fastest from all what you've ever seen, marketing guys may add "close to bare metal", but that is not true as all we know)
 
 # Example usage:
 
