@@ -12,5 +12,4 @@ before_script:
 
 script:
   - vendor/bin/phpunit --coverage-text --configuration phpunit.xml
-  - "composer require \"nikic/fast-route : *@dev\""
-  - php bench.php
+  - "composer require nikic/fast-route: *@dev && php bench.php"
