@@ -160,7 +160,7 @@ function fastroutebench($nRoutes, $nMatches)
         $parameters = $router->dispatch('GET', $examples[$middle]);
         //dd($parameters, $routes[$middle], $examples[$middle]);
     }
-    printf("My Router router middle route: %f\n", microtime(true) - $startTime);
+    printf("FastRoute router middle route: %f\n", microtime(true) - $startTime);
 
 
     // last route
