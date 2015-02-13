@@ -46,7 +46,8 @@ class Dispatcher
 
     public function dispatchDynamicRoute($rules, $url)
     {
-        foreach ($rules as list($regex, $map)) {
+        foreach ($rules as $rule) {
+            list($regex, $map) = $rule;
             if (!preg_match($regex, $url, $matches)) {
                 continue;
             }
@@ -57,7 +58,7 @@ class Dispatcher
 
             return [$handler, $resolved_variables];
         }
-
+        
         return null;
     }
 
