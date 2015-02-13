@@ -1,0 +1,31 @@
+{
+    "name": "pinepain/simple-routing",
+    "type": "library",
+    "description": "Lightweight and flexible request router framework",
+    "keywords": ["lightweight", "micro", "framework", "request", "routing"],
+    "homepage": "https://github.com/pinepain/php-simple-routing",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Bogdan Padalko",
+            "email": "zaq178miami@gmail.com"
+        }
+    ],
+    "require": {
+        "php": ">=5.4.0"
+    },
+    "require-dev": {
+      "mockery/mockery": "0.9.*",
+      "phpunit/phpunit": "4.5.*"
+    },
+    "autoload": {
+        "psr-4": {
+            "Pinepain\\SimpleRouting\\": "./src"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Pinepain\\SimpleRouting\\Tests\\": "./tests"
+        }
+    }
+}
