@@ -4,7 +4,7 @@
 namespace Pinepain\SimpleRouting\Tests\Filters;
 
 
-use Pinepain\SimpleRouting\Filters\Helpers\FormatsCollection;
+use Pinepain\SimpleRouting\CompilerFilters\Helpers\FormatsCollection;
 
 class FormatsCollectionTest extends \PHPUnit_Framework_TestCase
 {
@@ -15,12 +15,13 @@ class FormatsCollectionTest extends \PHPUnit_Framework_TestCase
         ['word', '[\w]+', ['w']],
         // see http://stackoverflow.com/questions/19256323/regex-to-match-a-slug
         ['slug', '[a-z0-9]+(?:-[a-z0-9]+)*', ['s']],
+        ['path', '(?:\/[^\/]+)+', 'p'],
     ];
 
     /**
-     * @covers \Pinepain\SimpleRouting\Filters\Helpers\FormatsCollection::__construct
-     * @covers \Pinepain\SimpleRouting\Filters\Helpers\FormatsCollection::add
-     * @covers \Pinepain\SimpleRouting\Filters\Helpers\FormatsCollection::find
+     * @covers \Pinepain\SimpleRouting\CompilerFilters\Helpers\FormatsCollection::__construct
+     * @covers \Pinepain\SimpleRouting\CompilerFilters\Helpers\FormatsCollection::add
+     * @covers \Pinepain\SimpleRouting\CompilerFilters\Helpers\FormatsCollection::find
      */
     public function testFind()
     {
@@ -32,12 +33,12 @@ class FormatsCollectionTest extends \PHPUnit_Framework_TestCase
     }
 
     /**
-     * @covers \Pinepain\SimpleRouting\Filters\Helpers\FormatsCollection::add
-     * @covers \Pinepain\SimpleRouting\Filters\Helpers\FormatsCollection::find
+     * @covers \Pinepain\SimpleRouting\CompilerFilters\Helpers\FormatsCollection::add
+     * @covers \Pinepain\SimpleRouting\CompilerFilters\Helpers\FormatsCollection::find
      */
     public function testAdd()
     {
-        $collection = new \Pinepain\SimpleRouting\Filters\Helpers\FormatsCollection($this->preset);
+        $collection = new \Pinepain\SimpleRouting\CompilerFilters\Helpers\FormatsCollection($this->preset);
 
         $collection->add('test', 'regex', ['test-alias-1', 'test-alias-2']);
 
@@ -48,12 +49,12 @@ class FormatsCollectionTest extends \PHPUnit_Framework_TestCase
     }
 
     /**
-     * @covers \Pinepain\SimpleRouting\Filters\Helpers\FormatsCollection::remove
-     * @covers \Pinepain\SimpleRouting\Filters\Helpers\FormatsCollection::find
+     * @covers \Pinepain\SimpleRouting\CompilerFilters\Helpers\FormatsCollection::remove
+     * @covers \Pinepain\SimpleRouting\CompilerFilters\Helpers\FormatsCollection::find
      */
     public function testRemove()
     {
-        $collection = new \Pinepain\SimpleRouting\Filters\Helpers\FormatsCollection($this->preset);
+        $collection = new \Pinepain\SimpleRouting\CompilerFilters\Helpers\FormatsCollection($this->preset);
 
         $collection->remove('segment');
 

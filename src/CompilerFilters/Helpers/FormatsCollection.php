@@ -1,7 +1,7 @@
 <?php
 
 
-namespace Pinepain\SimpleRouting\Filters\Helpers;
+namespace Pinepain\SimpleRouting\CompilerFilters\Helpers;
 
 
 class FormatsCollection

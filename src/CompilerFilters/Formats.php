@@ -1,9 +1,9 @@
 <?php
 
-namespace Pinepain\SimpleRouting\Filters;
+namespace Pinepain\SimpleRouting\CompilerFilters;
 
 use Pinepain\SimpleRouting\Contracts\CompilerFilterInterface;
-use Pinepain\SimpleRouting\Filters\Helpers\FormatsCollection;
+use Pinepain\SimpleRouting\CompilerFilters\Helpers\FormatsCollection;
 
 class Formats implements CompilerFilterInterface
 {

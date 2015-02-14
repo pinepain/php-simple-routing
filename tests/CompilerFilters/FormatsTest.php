@@ -4,16 +4,16 @@
 namespace Pinepain\SimpleRouting\Tests\Filters;
 
 
-use Pinepain\SimpleRouting\Filters\Formats;
+use Pinepain\SimpleRouting\CompilerFilters\Formats;
 
 class FormatsTest extends \PHPUnit_Framework_TestCase
 {
     /**
-     * @covers \Pinepain\SimpleRouting\Filters\Formats::handleMissedFormat
+     * @covers \Pinepain\SimpleRouting\CompilerFilters\Formats::handleMissedFormat
      */
     public function testHandleMissedFormat()
     {
-        $collection = $this->getMock('Pinepain\SimpleRouting\Filters\Helpers\FormatsCollection');
+        $collection = $this->getMock('Pinepain\SimpleRouting\CompilerFilters\Helpers\FormatsCollection');
 
         $filter = new Formats($collection);
 
@@ -22,12 +22,12 @@ class FormatsTest extends \PHPUnit_Framework_TestCase
     }
 
     /**
-     * @covers \Pinepain\SimpleRouting\Filters\Formats::__construct
-     * @covers \Pinepain\SimpleRouting\Filters\Formats::filter
+     * @covers \Pinepain\SimpleRouting\CompilerFilters\Formats::__construct
+     * @covers \Pinepain\SimpleRouting\CompilerFilters\Formats::filter
      */
     public function testFilter()
     {
-        $collection = $this->getMock('Pinepain\SimpleRouting\Filters\Helpers\FormatsCollection', ['find']);
+        $collection = $this->getMock('Pinepain\SimpleRouting\CompilerFilters\Helpers\FormatsCollection', ['find']);
 
 
         $collection->expects($this->at(0))
@@ -47,7 +47,7 @@ class FormatsTest extends \PHPUnit_Framework_TestCase
 
 
         $filter = $this->getMock(
-            '\Pinepain\SimpleRouting\Filters\Formats',
+            '\Pinepain\SimpleRouting\CompilerFilters\Formats',
             ['handleMissedFormat'],
             [$collection, 'default-x']
         );

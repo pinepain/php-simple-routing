@@ -85,8 +85,8 @@ class ParserTest extends \PHPUnit_Framework_TestCase
 
         $this->assertSame(
             [
-                '/with',
-                ['delimiter', false, false, '/']
+                '/with/',
+                ['delimiter', false, false, false]
             ],
             $parser->parse('/with{/delimiter}')
         );
@@ -130,6 +130,29 @@ class ParserTest extends \PHPUnit_Framework_TestCase
             ],
             $parser->parse('/with/{format:[a-z]{2,8}}')
         );
+
+        $this->assertSame(
+            [
+                '/with/',
+                ['param', false, false, false],
+                '/static/',
+                ['inside', false, false, false],
+            ],
+            $parser->parse('/with/{param}/static{/inside}')
+        );
+
+        $this->assertSame(
+            [
+                '/with/',
+                ['params', false, false, false],
+                ['one', false, false, false],
+                ['by', false, false, false],
+                '/',
+                ['one_', false, false, false],
+            ],
+            $parser->parse('/with/{params}{one}{by}{/one_}')
+        );
+
 
     }
 

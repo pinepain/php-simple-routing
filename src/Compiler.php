@@ -35,6 +35,7 @@ class Compiler
                     $optional_stack[] = '?';
                 }
             } elseif ($delimiter) {
+                // should not happens in real life due to parser optimization
                 $param_regex = preg_quote($delimiter, static::REGEX_DELIMITER) . $param_regex;
             }
 

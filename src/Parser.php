@@ -3,8 +3,6 @@
 
 namespace Pinepain\SimpleRouting;
 
-use RuntimeException;
-
 
 class Parser
 {
@@ -52,8 +50,8 @@ class Parser
             if ($offset > $prev) {
                 // match leading static part
                 $chunk = $this->getChunk($string, $prev, $offset, false);
-
-                $chunks[] = $chunk;
+            } else {
+                $chunk = null;
             }
 
             $name = $match['name'][0];
@@ -68,6 +66,16 @@ class Parser
             $delimiter = $match['delimiter'][1] > -1 ? $match['delimiter'][0] : false;
             $default   = isset($match['default']) && $match['default'][1] > -1 ? $match['default'][0] ?: null : false;
             $format    = isset($match['format']) ? $match['format'][0] : false;
+
+            if (false === $default && $delimiter) {
+                // optimize rule by appending (or moving) delimiter to previous static path component
+                $chunk     = $chunk . $delimiter;
+                $delimiter = false;
+            }
+
+            if ($chunk) {
+                $chunks[] = $chunk;
+            }
 
             $chunks[] = [$name, $format, $default, $delimiter];
 

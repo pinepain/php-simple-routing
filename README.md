@@ -41,8 +41,8 @@ parameters support (optional parameters, default values, etc.).
     use Pinepain\SimpleRouting\RoutesCollector;
     use Pinepain\SimpleRouting\Compiler;
     use Pinepain\SimpleRouting\Filter;
-    use Pinepain\SimpleRouting\Filters\Formats;
-    use Pinepain\SimpleRouting\Filters\Helpers\FormatsCollection;
+    use Pinepain\SimpleRouting\CompilerFilters\Formats;
+    use Pinepain\SimpleRouting\CompilerFilters\Helpers\FormatsCollection;
     use Pinepain\SimpleRouting\RulesGenerator;
     use Pinepain\SimpleRouting\Dispatcher;
     
@@ -53,6 +53,7 @@ parameters support (optional parameters, default values, etc.).
         ['word', '[\w]+', ['w']],
         // see http://stackoverflow.com/questions/19256323/regex-to-match-a-slug
         ['slug', '[a-z0-9]+(?:-[a-z0-9]+)*', ['s']],
+        ['path', '(?:\/[^\/]+)+', 'p'],
     ];
     
     $collector  = new RoutesCollector(new Parser());
@@ -88,6 +89,40 @@ parameters support (optional parameters, default values, etc.).
 *Note: While this framework is rather set of blocks it was built with mind and hope that you will use some IoC container,
 but you can do all that manually.*
 
+
+# Urls generation:
+
+We use `handler` value for routes identification. Same `handler` value for multiple routes will lead to situation, that
+only url will be generated based on last added route.
+
+
+## Example:
+
+For example, we have `SimpleRouter` initialized as written in example above, then, populate it with extra routes:
+
+```php
+    
+    $router->add('/first/route/{with_param}', 'handler1');
+    $router->add('/second/{route}/{foo}/{bar}', 'handler2');
+    $router->add('/route/{with}{/optional?}{/param?default}', 'handler3');
+```
+
+now we can generate some urls:
+
+    echo $router->url('handler1', ['with_param' => 'param-value']), PHP_EOL; // gives us /first/route/param-value
+    echo $router->url('handler2', ['route' => 'example', 'foo' =>'val', 'bar' => 'given']), PHP_EOL; // gives us /second/example/val/given
+    
+    echo $router->url('handler3', ['with' => 'some', 'optional' =>'given']), PHP_EOL; // gives us /route/some/given/default
+    
+    // but we can ignore default params:
+    echo $router->url('handler3', ['with' => 'some', 'optional' =>'given'], false), PHP_EOL; // gives us /route/some/given
+```
+
+By default route params limited to single segment (placed between slashes ('/')), so by default raw slash is not permitted in
+parameter value and goes encoded. As well as any non-url-safe characters. To change that behavior, you can define custom
+types handlers which will form param value as needed.
+
+Empty values for parameter values are not permitted.
 
 # Rules syntax:
 
@@ -193,9 +228,10 @@ Custom type format regexp may be injected in PHP code:
         ['word', '[\w]+', ['w']],
         // see http://stackoverflow.com/questions/19256323/regex-to-match-a-slug
         ['slug', '[a-z0-9]+(?:-[a-z0-9]+)*', ['s']],
+        ['path', '(?:\/[^\/]+)+', 'p'],
     ];
 
-    $formats = \Pinepain\SimpleRouting\Filters\Helpers\FormatsCollection($formats_preset); 
+    $formats = \Pinepain\SimpleRouting\CompilerFilters\Helpers\FormatsCollection($formats_preset); 
 ```    
 you can also manually populate formats:
 
@@ -209,7 +245,7 @@ To make all that happens you have to pass formats collection to `Formats` filter
 applied to urls:
 
 ```php
-    $formats_filter = new \Pinepain\SimpleRouting\Filters\Formats($formats);
+    $formats_filter = new \Pinepain\SimpleRouting\CompilerFilters\Formats($formats);
     $filter = new \Pinepain\SimpleRouting\Filter([$formats_filter]);
     
     // and then pass it to rules data generator,
