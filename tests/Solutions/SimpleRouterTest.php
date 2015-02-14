@@ -28,6 +28,10 @@ class SimpleRouterTest extends \PHPUnit_Framework_TestCase
             ->disableOriginalConstructor()
             ->getMock();
 
+        $url_generator = $this->getMockBuilder('\Pinepain\SimpleRouting\UrlGenerator')
+            ->disableOriginalConstructor()
+            ->getMock();
+
         $collector->expects($this->at(0))
             ->method('add')
             ->with('route-1', 'handler-1')
@@ -38,7 +42,8 @@ class SimpleRouterTest extends \PHPUnit_Framework_TestCase
             ->with('route-2', 'handler-2')
             ->willReturn('parsed-2');
 
-        $router = new SimpleRouter($collector, $generator, $dispatcher);
+
+        $router = new SimpleRouter($collector, $generator, $dispatcher, $url_generator);
 
         $this->assertEquals('parsed-1', $router->add('route-1', 'handler-1'));
         $this->assertEquals('parsed-2', $router->add('route-2', 'handler-2'));
@@ -88,10 +93,58 @@ class SimpleRouterTest extends \PHPUnit_Framework_TestCase
             ->withConsecutive(['url-1'], ['url-2'])
             ->willReturnOnConsecutiveCalls(['handler-1', 'variables-1'], ['handler-2', 'variables-2']);
 
-        $router = new SimpleRouter($collector, $generator, $dispatcher);
+        $url_generator = $this->getMockBuilder('\Pinepain\SimpleRouting\UrlGenerator')
+            ->disableOriginalConstructor()
+            ->getMock();
+
+        $router = new SimpleRouter($collector, $generator, $dispatcher, $url_generator);
 
         $this->assertSame(['handler-1', 'variables-1'], $router->dispatch('url-1'));
         $this->assertSame(['handler-2', 'variables-2'], $router->dispatch('url-2'));
+    }
+
+    /**
+     * @covers \Pinepain\SimpleRouting\Solutions\SimpleRouter::url
+     */
+    public function testUrl() {
+
+        $collector = $this->getMockBuilder('Pinepain\SimpleRouting\RoutesCollector')
+            ->setMethods(['getDynamicRoutes'])
+            ->disableOriginalConstructor()
+            ->getMock();
+
+        $generator = $this->getMockBuilder('Pinepain\SimpleRouting\RulesGenerator')
+            ->disableOriginalConstructor()
+            ->getMock();
+
+        $dispatcher = $this->getMockBuilder('Pinepain\SimpleRouting\Dispatcher')
+            ->disableOriginalConstructor()
+            ->getMock();
+
+        $url_generator = $this->getMockBuilder('\Pinepain\SimpleRouting\UrlGenerator')
+            ->setMethods(['setMapFromRoutes', 'generate'])
+            ->disableOriginalConstructor()
+            ->getMock();
+
+
+        $collector->expects($this->exactly(3))
+            ->method('getDynamicRoutes')
+            ->willReturn([['handler', ['parsed']]]);
+
+        $url_generator->expects($this->exactly(3))
+            ->method('setMapFromRoutes')
+            ->with([['handler', ['parsed']]]);
+
+        $url_generator->expects($this->exactly(3))
+            ->method('generate')
+            ->withConsecutive(['test-1', ['test-1'], false], ['test-2', ['test-2'], false], ['test-3', ['test-3'], true])
+            ->willReturn('url');
+
+        $router = new SimpleRouter($collector, $generator, $dispatcher, $url_generator);
+
+        $this->assertSame('url', $router->url('test-1', ['test-1']));
+        $this->assertSame('url', $router->url('test-2', ['test-2'], false));
+        $this->assertSame('url', $router->url('test-3', ['test-3'], true));
     }
 
 }

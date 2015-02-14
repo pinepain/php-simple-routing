@@ -15,7 +15,7 @@ class FormatsCollectionTest extends \PHPUnit_Framework_TestCase
         ['word', '[\w]+', ['w']],
         // see http://stackoverflow.com/questions/19256323/regex-to-match-a-slug
         ['slug', '[a-z0-9]+(?:-[a-z0-9]+)*', ['s']],
-        ['path', '(?:\/[^\/]+)+', 'p'],
+        ['path', '.+', 'p'],
     ];
 
     /**

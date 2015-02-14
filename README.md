@@ -45,6 +45,9 @@ parameters support (optional parameters, default values, etc.).
     use Pinepain\SimpleRouting\CompilerFilters\Helpers\FormatsCollection;
     use Pinepain\SimpleRouting\RulesGenerator;
     use Pinepain\SimpleRouting\Dispatcher;
+    use Pinepain\SimpleRouting\FormatsHandler;
+    use Pinepain\SimpleRouting\FormatHandlers\Path as PathFormatHandler;
+    use Pinepain\SimpleRouting\UrlGenerator;
     
     $formats_preset = [
         ['segment', '[^/]+', ['default']],
@@ -53,15 +56,17 @@ parameters support (optional parameters, default values, etc.).
         ['word', '[\w]+', ['w']],
         // see http://stackoverflow.com/questions/19256323/regex-to-match-a-slug
         ['slug', '[a-z0-9]+(?:-[a-z0-9]+)*', ['s']],
-        ['path', '(?:\/[^\/]+)+', 'p'],
+        ['path', '(?:\/[^\/]+)*', 'p'],
     ];
     
-    $collector  = new RoutesCollector(new Parser());
-    $filter     = new Filter([new Formats(new FormatsCollection($formats_preset))]);
-    $generator  = new RulesGenerator($filter, new Compiler());
-    $dispatcher = new Dispatcher();
+    $collector       = new RoutesCollector(new Parser());
+    $filter          = new Filter([new Formats(new FormatsCollection($formats_preset))]);
+    $generator       = new RulesGenerator($filter, new Compiler());
+    $dispatcher      = new Dispatcher();
+    $formats_handler = new FormatsHandler([new PathFormatHandler()]);
+    $url_generator   = new UrlGenerator($formats_handler);
     
-    $router = new SimpleRouter($collector, $generator, $dispatcher);
+    $router = new SimpleRouter($collector, $generator, $dispatcher, $url_generator);
     
     $router->add('/some/{path}', 'handler');
     
@@ -92,9 +97,8 @@ but you can do all that manually.*
 
 # Urls generation:
 
-We use `handler` value for routes identification. Same `handler` value for multiple routes will lead to situation, that
-only url will be generated based on last added route.
-
+In basic implementation we use `handler` value for routes identification. Same `handler` value for multiple routes will
+lead to situation, when url will be generated based on last added route.
 
 ## Example:
 
@@ -105,17 +109,26 @@ For example, we have `SimpleRouter` initialized as written in example above, the
     $router->add('/first/route/{with_param}', 'handler1');
     $router->add('/second/{route}/{foo}/{bar}', 'handler2');
     $router->add('/route/{with}{/optional?}{/param?default}', 'handler3');
+
 ```
 
 now we can generate some urls:
 
+```php
+
     echo $router->url('handler1', ['with_param' => 'param-value']), PHP_EOL; // gives us /first/route/param-value
     echo $router->url('handler2', ['route' => 'example', 'foo' =>'val', 'bar' => 'given']), PHP_EOL; // gives us /second/example/val/given
+    echo $router->url('handler3', ['with' => 'some', 'optional' =>'given']), PHP_EOL; // gives us /route/some/given
     
-    echo $router->url('handler3', ['with' => 'some', 'optional' =>'given']), PHP_EOL; // gives us /route/some/given/default
+    // When we skip parameters with default value, optinal parameter and the reset of path not included in generated url:
+    echo $router->url('handler3', ['with' => 'some']), PHP_EOL; // gives us /route/some
     
-    // but we can ignore default params:
-    echo $router->url('handler3', ['with' => 'some', 'optional' =>'given'], false), PHP_EOL; // gives us /route/some/given
+    // we can force default params insertion:
+    echo $router->url('handler3', ['with' => 'some', 'optional' => 'without-default'], true), PHP_EOL; // gives us /route/some/without-default
+    
+    // this one fill fail while we didn't set default value for optional parameter, but asked to generate full url
+    //echo $router->url('handler3', ['with' => 'some'], true), PHP_EOL; // gives us /route/some/default
+
 ```
 
 By default route params limited to single segment (placed between slashes ('/')), so by default raw slash is not permitted in
@@ -228,7 +241,7 @@ Custom type format regexp may be injected in PHP code:
         ['word', '[\w]+', ['w']],
         // see http://stackoverflow.com/questions/19256323/regex-to-match-a-slug
         ['slug', '[a-z0-9]+(?:-[a-z0-9]+)*', ['s']],
-        ['path', '(?:\/[^\/]+)+', 'p'],
+        ['path', '.+', 'p'],
     ];
 
     $formats = \Pinepain\SimpleRouting\CompilerFilters\Helpers\FormatsCollection($formats_preset); 
