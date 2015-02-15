@@ -7,9 +7,9 @@ $loader = require __DIR__ . "/vendor/autoload.php";
 //      "nikic/fast-route": "dev-master"
 
 
-// composer require "aura/router : 2.0.*@dev"
-// composer require "symfony/routing : 3.0.*@dev"
-// composer require "nikic/fast-route : *@dev"
+// composer require "aura/router":"2.0.*@dev"
+// composer require "symfony/routing":"3.0.*@dev"
+// composer require "nikic/fast-route":"*@dev"
 
 function dd()
 {
