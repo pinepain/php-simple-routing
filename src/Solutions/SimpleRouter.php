@@ -3,7 +3,7 @@
 
 namespace Pinepain\SimpleRouting\Solutions;
 
-use Pinepain\SimpleRouting\Dispatcher;
+use Pinepain\SimpleRouting\Matcher;
 use Pinepain\SimpleRouting\Filter;
 use Pinepain\SimpleRouting\RoutesCollector;
 use Pinepain\SimpleRouting\RulesGenerator;
@@ -21,19 +21,19 @@ class SimpleRouter
      */
     private $generator;
     /**
-     * @var Dispatcher
+     * @var Matcher
      */
-    private $dispatcher;
+    private $matcher;
     /**
      * @var UrlGenerator
      */
     private $url_generator;
 
-    public function __construct(RoutesCollector $collector, RulesGenerator $generator, Dispatcher $dispatcher, UrlGenerator $url_generator)
+    public function __construct(RoutesCollector $collector, RulesGenerator $generator, Matcher $dispatcher, UrlGenerator $url_generator)
     {
         $this->collector     = $collector;
         $this->generator     = $generator;
-        $this->dispatcher    = $dispatcher;
+        $this->matcher       = $dispatcher;
         $this->url_generator = $url_generator;
     }
 
@@ -42,17 +42,17 @@ class SimpleRouter
         return $this->collector->add($route, $handler);
     }
 
-    public function dispatch($url)
+    public function match($url)
     {
         $dynamic_routes = $this->collector->getDynamicRoutes();
         $static_routes  = $this->collector->getStaticRoutes();
 
         $dynamic_rules = $this->generator->generate($dynamic_routes);
 
-        $this->dispatcher->setStaticRules($static_routes);
-        $this->dispatcher->setDynamicRules($dynamic_rules);
+        $this->matcher->setStaticRules($static_routes);
+        $this->matcher->setDynamicRules($dynamic_rules);
 
-        return $this->dispatcher->dispatch($url);
+        return $this->matcher->match($url);
     }
 
     public function url($handler, array $arguments = array(), $full = false)

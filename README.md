@@ -1,6 +1,6 @@
 # Php Simple Router
 
-[![Build Status](https://travis-ci.org/pinepain/php-simple-router.svg)](https://travis-ci.org/pinepain/php-simple-router)
+[![Build Status](https://travis-ci.org/pinepain/php-simple-routing.svg)](https://travis-ci.org/pinepain/php-simple-routing)
 
 # About:
 
@@ -44,7 +44,7 @@ parameters support (optional parameters, default values, etc.).
     use Pinepain\SimpleRouting\CompilerFilters\Formats;
     use Pinepain\SimpleRouting\CompilerFilters\Helpers\FormatsCollection;
     use Pinepain\SimpleRouting\RulesGenerator;
-    use Pinepain\SimpleRouting\Dispatcher;
+    use Pinepain\SimpleRouting\Matcher;
     use Pinepain\SimpleRouting\FormatsHandler;
     use Pinepain\SimpleRouting\FormatHandlers\Path as PathFormatHandler;
     use Pinepain\SimpleRouting\UrlGenerator;
@@ -62,7 +62,7 @@ parameters support (optional parameters, default values, etc.).
     $collector       = new RoutesCollector(new Parser());
     $filter          = new Filter([new Formats(new FormatsCollection($formats_preset))]);
     $generator       = new RulesGenerator($filter, new Compiler());
-    $dispatcher      = new Dispatcher();
+    $dispatcher      = new Matcher();
     $formats_handler = new FormatsHandler([new PathFormatHandler()]);
     $url_generator   = new UrlGenerator($formats_handler);
     
@@ -72,7 +72,7 @@ parameters support (optional parameters, default values, etc.).
     
     $url = '/some/homepage';
     
-    $result = $router->dispatch($url);
+    $result = $router->match($url);
     
     function handler($homepage) {
         var_dump(func_get_args());

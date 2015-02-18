@@ -84,12 +84,12 @@ function simple_bench($nRoutes, $nMatches)
     $dynamic_routes = $collector->getDynamicRoutes();
 
     $generated_data = $generator->generate($dynamic_routes);
-    $dispatcher     = new \Pinepain\SimpleRouting\Dispatcher($collector->getStaticRoutes(), $generated_data);
+    $dispatcher     = new \Pinepain\SimpleRouting\Matcher($collector->getStaticRoutes(), $generated_data);
 
     // first route
     $startTime = microtime(true);
     for ($i = 0; $i < $nMatches; $i++) {
-        $parameters = $dispatcher->dispatch($examples[0]);
+        $parameters = $dispatcher->match($examples[0]);
         //dd($parameters, $routes[0], $examples[0]);
     }
     printf("Simple Router router first route: %f\n", microtime(true) - $startTime);
@@ -99,7 +99,7 @@ function simple_bench($nRoutes, $nMatches)
 
     $startTime = microtime(true);
     for ($i = 0; $i < $nMatches; $i++) {
-        $parameters = $dispatcher->dispatch($examples[$middle]);
+        $parameters = $dispatcher->match($examples[$middle]);
         //dd($parameters, $routes[$middle], $examples[$middle]);
     }
     printf("Simple Router router middle route: %f\n", microtime(true) - $startTime);
@@ -108,7 +108,7 @@ function simple_bench($nRoutes, $nMatches)
     // last route
     $startTime = microtime(true);
     for ($i = 0; $i < $nMatches; $i++) {
-        $parameters = $dispatcher->dispatch($lastStr);
+        $parameters = $dispatcher->match($lastStr);
 
     }
     printf("Simple Router last route: %f\n", microtime(true) - $startTime);
@@ -117,7 +117,7 @@ function simple_bench($nRoutes, $nMatches)
     // unknown route
     $startTime = microtime(true);
     for ($i = 0; $i < $nMatches; $i++) {
-        $parameters = $dispatcher->dispatch('/foobar/bar');
+        $parameters = $dispatcher->match('/foobar/bar');
     }
     printf("Simple Router router unknown route: %f\n", microtime(true) - $startTime);
     //var_dump($res);

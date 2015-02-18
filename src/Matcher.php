@@ -4,7 +4,7 @@
 namespace Pinepain\SimpleRouting;
 
 
-class Dispatcher
+class Matcher
 {
     /**
      * @var array
@@ -35,16 +35,16 @@ class Dispatcher
         $this->dynamic_rules = $dynamic_rules;
     }
 
-    public function dispatch($url)
+    public function match($url)
     {
         if (isset($this->static_rules[$url])) {
             return $this->static_rules[$url];
         }
 
-        return $this->dispatchDynamicRoute($this->dynamic_rules, $url);
+        return $this->matchDynamicRoute($this->dynamic_rules, $url);
     }
 
-    public function dispatchDynamicRoute($rules, $url)
+    public function matchDynamicRoute($rules, $url)
     {
         foreach ($rules as $rule) {
             list($regex, $map) = $rule;

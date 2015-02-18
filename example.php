@@ -10,7 +10,7 @@ use Pinepain\SimpleRouting\Filter;
 use Pinepain\SimpleRouting\CompilerFilters\Formats;
 use Pinepain\SimpleRouting\CompilerFilters\Helpers\FormatsCollection;
 use Pinepain\SimpleRouting\RulesGenerator;
-use Pinepain\SimpleRouting\Dispatcher;
+use Pinepain\SimpleRouting\Matcher;
 use Pinepain\SimpleRouting\FormatsHandler;
 use Pinepain\SimpleRouting\FormatHandlers\Path as PathFormatHandler;
 use Pinepain\SimpleRouting\UrlGenerator;
@@ -28,7 +28,7 @@ $formats_preset = [
 $collector       = new RoutesCollector(new Parser());
 $filter          = new Filter([new Formats(new FormatsCollection($formats_preset))]);
 $generator       = new RulesGenerator($filter, new Compiler());
-$dispatcher      = new Dispatcher();
+$dispatcher      = new Matcher();
 $formats_handler = new FormatsHandler([new PathFormatHandler()]);
 $url_generator   = new UrlGenerator($formats_handler);
 
@@ -60,7 +60,7 @@ echo $router->url('handler3', ['with' => 'some', 'optional' => 'without-default'
 
 $url = '/some/homepage';
 
-$result = $router->dispatch($url);
+$result = $router->match($url);
 
 function handler($homepage) {
     var_dump(func_get_args());

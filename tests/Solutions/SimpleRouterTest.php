@@ -24,7 +24,7 @@ class SimpleRouterTest extends \PHPUnit_Framework_TestCase
             ->disableOriginalConstructor()
             ->getMock();
 
-        $dispatcher = $this->getMockBuilder('Pinepain\SimpleRouting\Dispatcher')
+        $dispatcher = $this->getMockBuilder('Pinepain\SimpleRouting\Matcher')
             ->disableOriginalConstructor()
             ->getMock();
 
@@ -50,7 +50,7 @@ class SimpleRouterTest extends \PHPUnit_Framework_TestCase
     }
 
     /**
-     * @covers \Pinepain\SimpleRouting\Solutions\SimpleRouter::dispatch
+     * @covers \Pinepain\SimpleRouting\Solutions\SimpleRouter::match
      */
     public function testDispatch()
     {
@@ -75,8 +75,8 @@ class SimpleRouterTest extends \PHPUnit_Framework_TestCase
             ->withConsecutive([['dynamic-routes-1']], [['dynamic-routes-2']])
             ->willReturnOnConsecutiveCalls(['dynamic-generated-rules-1'], ['dynamic-generated-rules-2']);
 
-        $dispatcher = $this->getMockBuilder('Pinepain\SimpleRouting\Dispatcher')
-            ->setMethods(['setStaticRules', 'setDynamicRules', 'dispatch'])
+        $dispatcher = $this->getMockBuilder('Pinepain\SimpleRouting\Matcher')
+            ->setMethods(['setStaticRules', 'setDynamicRules', 'match'])
             ->disableOriginalConstructor()
             ->getMock();
 
@@ -89,7 +89,7 @@ class SimpleRouterTest extends \PHPUnit_Framework_TestCase
             ->withConsecutive([['dynamic-generated-rules-1']], [['dynamic-generated-rules-2']]);
 
         $dispatcher->expects($this->exactly(2))
-            ->method('dispatch')
+            ->method('match')
             ->withConsecutive(['url-1'], ['url-2'])
             ->willReturnOnConsecutiveCalls(['handler-1', 'variables-1'], ['handler-2', 'variables-2']);
 
@@ -99,8 +99,8 @@ class SimpleRouterTest extends \PHPUnit_Framework_TestCase
 
         $router = new SimpleRouter($collector, $generator, $dispatcher, $url_generator);
 
-        $this->assertSame(['handler-1', 'variables-1'], $router->dispatch('url-1'));
-        $this->assertSame(['handler-2', 'variables-2'], $router->dispatch('url-2'));
+        $this->assertSame(['handler-1', 'variables-1'], $router->match('url-1'));
+        $this->assertSame(['handler-2', 'variables-2'], $router->match('url-2'));
     }
 
     /**
@@ -117,7 +117,7 @@ class SimpleRouterTest extends \PHPUnit_Framework_TestCase
             ->disableOriginalConstructor()
             ->getMock();
 
-        $dispatcher = $this->getMockBuilder('Pinepain\SimpleRouting\Dispatcher')
+        $dispatcher = $this->getMockBuilder('Pinepain\SimpleRouting\Matcher')
             ->disableOriginalConstructor()
             ->getMock();
 
