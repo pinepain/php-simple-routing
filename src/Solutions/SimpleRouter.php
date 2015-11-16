@@ -59,6 +59,15 @@ class SimpleRouter
         return $this->matcher->match($url);
     }
 
+    /**
+     * Generate URL
+     *
+     * @param string $handler   Route definition identifier
+     * @param array  $arguments Route parameter values
+     * @param bool   $full      Whether missed optional parameters should be included in built URL
+     *
+     * @return string Generated URL
+     */
     public function url($handler, array $arguments = array(), $full = false)
     {
         $dynamic_routes = $this->collector->getDynamicRoutes();

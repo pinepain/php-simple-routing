@@ -215,17 +215,15 @@ By default parameter is whole URI segment (part between slashes):
  - `/セグメント/unicode-is-ok`
  
 You can limit that by specifying parameter type by placing colon (`:`) and type definition after parameter name.
-If parameter mandatory mark present, colon is optional.
+If parameter optional mark present (question mark `?`) and no default value specified, colon is optional.
 
-If parameter segment present but doesn't pass under type format, such situation interpreted as error whole rule will fail.
+If parameter segment present but doesn't pass under type format, whole rule will no match.
 
 Here is some examples:
 
- - `{parameter:digit}`
- - `{parameter:d}`, (assume `d` is short for `digit`)
- - `{parameter?:d}`, this one meand that parameter is optional and has type `digit`. If parameter data will not pass under
-    type format, this will be interpreted as error and default value will not be used.
-
+ - `{parameter:\d+}`
+ - `{parameter?:\w{2}-\d+}`, this one meand that parameter is optional and has type regexp `\w{2}-\d+`.
+ 
 Note, that parameter type regex **must be** valid and **must not** contains capturing groups.
 
 #### Custom parameter type:
@@ -233,8 +231,9 @@ Note, that parameter type regex **must be** valid and **must not** contains capt
 Custom type format regexp may be injected in PHP code:
 
 ```php
-
-     $formats_preset = [
+    use \Pinepain\SimpleRouting\CompilerFilters\Helpers\FormatsCollection;
+    
+    $formats_preset = [
         ['segment', '[^/]+', ['default']],
         ['alpha', '[[:alpha:]]+', ['a']],
         ['digit', '[[:digit:]]+', ['d']],
@@ -243,10 +242,16 @@ Custom type format regexp may be injected in PHP code:
         ['slug', '[a-z0-9]+(?:-[a-z0-9]+)*', ['s']],
         ['path', '.+', 'p'],
     ];
-
-    $formats = \Pinepain\SimpleRouting\CompilerFilters\Helpers\FormatsCollection($formats_preset); 
+    
+    $formats = FormatsCollection($formats_preset); 
 ```    
-you can also manually populate formats:
+So that later you can use something like:
+
+ - `{parameter:digit}`
+ - `{parameter:d}`, (assume `d` is short for `digit`)
+ - `{parameter?:d}`, this one mean that parameter is optional and has type `digit`. 
+
+You can also manually populate formats:
 
 ```php
     $formats->add('dmy_date', '\d{2}-\d{2}-\d{4}', ['dmy']);
@@ -258,8 +263,11 @@ To make all that happens you have to pass formats collection to `Formats` filter
 applied to urls:
 
 ```php
-    $formats_filter = new \Pinepain\SimpleRouting\CompilerFilters\Formats($formats);
-    $filter = new \Pinepain\SimpleRouting\Filter([$formats_filter]);
+    use \Pinepain\SimpleRouting\CompilerFilters\Formats;
+    use \Pinepain\SimpleRouting\Filter;
+
+    $formats_filter = new Formats($formats);
+    $filter = new Filter([$formats_filter]);
     
     // and then pass it to rules data generator,
     

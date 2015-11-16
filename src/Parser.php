@@ -32,6 +32,14 @@ class Parser
         )
     /xu';
 
+    /**
+     * Parse route rule
+     *
+     * @param string $string Route rule string to parse
+     *
+     * @return array Array of parsed chunks. String item stands for static part, array - for parameter rule.
+     * @throws Exception
+     */
     public function parse($string)
     {
         if (!preg_match_all($this->parameters_regex, $string, $matches, PREG_OFFSET_CAPTURE | PREG_SET_ORDER)) {
@@ -93,6 +101,16 @@ class Parser
         return $chunks;
     }
 
+    /**
+     * Get chunk from route rule string specified with given position
+     *
+     * @param string $string Route rule string
+     * @param int    $from   Chunk start position
+     * @param int    $to     Chunk end position
+     * @param bool   $final  Whether chunk is final in given rule
+     *
+     * @return string
+     */
     public function getChunk($string, $from, $to, $final = false)
     {
         // match static ending
@@ -104,6 +122,14 @@ class Parser
         return $chunk;
     }
 
+    /**
+     * Lint chunk string
+     *
+     * @param string $string
+     * @param bool   $final
+     *
+     * @return string
+     */
     public function lintChunk($string, $final = false)
     {
         $string = preg_replace('/[\s\v]+/u', '', $string);

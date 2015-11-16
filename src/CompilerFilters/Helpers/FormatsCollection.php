@@ -16,11 +16,11 @@ class FormatsCollection
         }
     }
 
-    public function add($name, $regex, $alias = [])
+    public function add($name, $regex, $aliases = [])
     {
         $this->formats[$name] = $regex;
 
-        foreach ((array)$alias as $a) {
+        foreach ((array)$aliases as $a) {
             $this->aliases[$a] = $name;
         }
     }

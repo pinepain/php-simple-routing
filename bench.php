@@ -64,7 +64,12 @@ function simple_bench($nRoutes, $nMatches)
     $collector = new \Pinepain\SimpleRouting\RoutesCollector($parser);
 
     $compiler  = new \Pinepain\SimpleRouting\Compiler();
-    $filter = new \Pinepain\SimpleRouting\Filter([new \Pinepain\SimpleRouting\CompilerFilters\Formats(new \Pinepain\SimpleRouting\CompilerFilters\Helpers\FormatsCollection([['default', '[^/]+']]))]);
+    $filter = new \Pinepain\SimpleRouting\Filter(
+        [
+            new \Pinepain\SimpleRouting\CompilerFilters\Formats(
+                new \Pinepain\SimpleRouting\CompilerFilters\Helpers\FormatsCollection([['default', '[^/]+']]))
+        ]
+    );
     $generator = new \Pinepain\SimpleRouting\RulesGenerator($filter, $compiler);
 
     $routes   = [];
