@@ -6,7 +6,6 @@ namespace Pinepain\SimpleRouting;
 
 class Filter
 {
-
     /**
      * @var array|Contracts\CompilerFilterInterface[]
      */

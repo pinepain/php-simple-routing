@@ -110,7 +110,7 @@ class RoutesCollectorTest extends \PHPUnit_Framework_TestCase
     }
 
     /**
-     * @covers \Pinepain\SimpleRouting\RoutesCollector::add
+     * @covers                   \Pinepain\SimpleRouting\RoutesCollector::add
      *
      * @expectedException \Pinepain\SimpleRouting\Exception
      * @expectedExceptionMessage Route 'test' already registered

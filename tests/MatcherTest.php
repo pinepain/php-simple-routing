@@ -8,14 +8,12 @@ use Pinepain\SimpleRouting\Matcher;
 
 class MatcherTest extends \PHPUnit_Framework_TestCase
 {
-
     /**
      * @covers \Pinepain\SimpleRouting\Matcher::extractVariablesFromMatches
      */
     public function testExtractVariablesFromMatches()
     {
         $dispatcher = new Matcher([], []);
-
 
         $this->assertEquals(
             [
@@ -75,7 +73,11 @@ class MatcherTest extends \PHPUnit_Framework_TestCase
         $dynamic_rules = ['here will be no dragons, but only dynamic rules'];
 
         /** @var \Pinepain\SimpleRouting\Matcher | \PHPUnit_Framework_MockObject_MockObject $dispatcher */
-        $dispatcher = $this->getMock('Pinepain\SimpleRouting\Matcher', ['matchDynamicRoute'], [$static_rules, $dynamic_rules]);
+        $dispatcher = $this->getMock(
+            'Pinepain\SimpleRouting\Matcher',
+            ['matchDynamicRoute'],
+            [$static_rules, $dynamic_rules]
+        );
 
         $dispatcher->expects($this->at(0))
             ->method('matchDynamicRoute')

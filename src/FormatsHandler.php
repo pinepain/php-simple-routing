@@ -9,7 +9,6 @@ use Pinepain\SimpleRouting\Contracts\FormatHandlerInterface;
 
 class FormatsHandler
 {
-
     /** @var FormatHandlerInterface[] */
     private $handlers;
 

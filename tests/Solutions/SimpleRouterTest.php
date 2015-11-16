@@ -8,7 +8,6 @@ use Pinepain\SimpleRouting\Solutions\SimpleRouter;
 
 class SimpleRouterTest extends \PHPUnit_Framework_TestCase
 {
-
     /**
      * @covers \Pinepain\SimpleRouting\Solutions\SimpleRouter::__construct
      * @covers \Pinepain\SimpleRouting\Solutions\SimpleRouter::add
@@ -60,10 +59,14 @@ class SimpleRouterTest extends \PHPUnit_Framework_TestCase
             ->getMock();
 
         $collector->expects($this->exactly(2))
-            ->method('getStaticRoutes')->with()->willReturnOnConsecutiveCalls(['static-routes-1'], ['static-routes-2']);
+            ->method('getStaticRoutes')
+            ->with()
+            ->willReturnOnConsecutiveCalls(['static-routes-1'], ['static-routes-2']);
 
         $collector->expects($this->exactly(2))
-            ->method('getDynamicRoutes')->with()->willReturnOnConsecutiveCalls(['dynamic-routes-1'], ['dynamic-routes-2']);
+            ->method('getDynamicRoutes')
+            ->with()
+            ->willReturnOnConsecutiveCalls(['dynamic-routes-1'], ['dynamic-routes-2']);
 
         $generator = $this->getMockBuilder('Pinepain\SimpleRouting\RulesGenerator')
             ->setMethods(['generate'])
@@ -106,7 +109,8 @@ class SimpleRouterTest extends \PHPUnit_Framework_TestCase
     /**
      * @covers \Pinepain\SimpleRouting\Solutions\SimpleRouter::url
      */
-    public function testUrl() {
+    public function testUrl()
+    {
 
         $collector = $this->getMockBuilder('Pinepain\SimpleRouting\RoutesCollector')
             ->setMethods(['getDynamicRoutes'])
@@ -137,7 +141,11 @@ class SimpleRouterTest extends \PHPUnit_Framework_TestCase
 
         $url_generator->expects($this->exactly(3))
             ->method('generate')
-            ->withConsecutive(['test-1', ['test-1'], false], ['test-2', ['test-2'], false], ['test-3', ['test-3'], true])
+            ->withConsecutive(
+                ['test-1', ['test-1'], false],
+                ['test-2', ['test-2'], false],
+                ['test-3', ['test-3'], true]
+            )
             ->willReturn('url');
 
         $router = new SimpleRouter($collector, $generator, $dispatcher, $url_generator);
@@ -146,5 +154,4 @@ class SimpleRouterTest extends \PHPUnit_Framework_TestCase
         $this->assertSame('url', $router->url('test-2', ['test-2'], false));
         $this->assertSame('url', $router->url('test-3', ['test-3'], true));
     }
-
 }

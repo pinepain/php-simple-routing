@@ -21,7 +21,6 @@ class FilterTest extends \PHPUnit_Framework_TestCase
         $this->filter = new Filter();
     }
 
-
     /**
      * @covers \Pinepain\SimpleRouting\Filter::getFilters
      * @covers \Pinepain\SimpleRouting\Filter::setFilters

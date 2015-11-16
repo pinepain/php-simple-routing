@@ -182,15 +182,24 @@ class UrlGeneratorTest extends \PHPUnit_Framework_TestCase
                 '0-handled'
             );
 
-        $this->assertEquals('/test-handled/delimiter-handled/new-value-handled', $generator->generate('test', ['name' => 'new-value'], true));
-        $this->assertEquals('/test-handled/delimiter-handled/default-value-handled', $generator->generate('test', [], true));
-        $this->assertEquals('/test-handled/delimiter-handled/0-handled', $generator->generate('test', ['name' => '0'], true));
+        $this->assertEquals(
+            '/test-handled/delimiter-handled/new-value-handled',
+            $generator->generate('test', ['name' => 'new-value'], true)
+        );
+        $this->assertEquals(
+            '/test-handled/delimiter-handled/default-value-handled',
+            $generator->generate('test', [], true)
+        );
+        $this->assertEquals(
+            '/test-handled/delimiter-handled/0-handled',
+            $generator->generate('test', ['name' => '0'], true)
+        );
 
         $this->assertEquals('/test-handled', $generator->generate('test'));
     }
 
     /**
-     * @covers \Pinepain\SimpleRouting\UrlGenerator::generate
+     * @covers                   \Pinepain\SimpleRouting\UrlGenerator::generate
      *
      * @expectedException \Pinepain\SimpleRouting\Exception
      * @expectedExceptionMessage Required parameter 'name' value missed
@@ -216,7 +225,7 @@ class UrlGeneratorTest extends \PHPUnit_Framework_TestCase
     }
 
     /**
-     * @covers \Pinepain\SimpleRouting\UrlGenerator::generate
+     * @covers                   \Pinepain\SimpleRouting\UrlGenerator::generate
      *
      * @expectedException \Pinepain\SimpleRouting\Exception
      * @expectedExceptionMessage Empty value provided for parameter 'name'
@@ -247,7 +256,7 @@ class UrlGeneratorTest extends \PHPUnit_Framework_TestCase
     }
 
     /**
-     * @covers \Pinepain\SimpleRouting\UrlGenerator::generate
+     * @covers                   \Pinepain\SimpleRouting\UrlGenerator::generate
      *
      * @expectedException \Pinepain\SimpleRouting\Exception
      * @expectedExceptionMessage Empty default value for parameter 'name' set and no other value provided

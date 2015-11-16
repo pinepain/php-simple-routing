@@ -4,7 +4,8 @@ namespace Pinepain\SimpleRouting\FormatHandlers;
 
 use Pinepain\SimpleRouting\Contracts\FormatHandlerInterface;
 
-class Path implements FormatHandlerInterface{
+class Path implements FormatHandlerInterface
+{
 
     /**
      * @param mixed $value
@@ -13,7 +14,7 @@ class Path implements FormatHandlerInterface{
      */
     public function handle($value)
     {
-        $value = trim($value, '/');
+        $value      = trim($value, '/');
         $components = explode('/', $value);
 
         $components = array_map('rawurlencode', $components);

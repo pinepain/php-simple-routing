@@ -29,8 +29,12 @@ class SimpleRouter
      */
     private $url_generator;
 
-    public function __construct(RoutesCollector $collector, RulesGenerator $generator, Matcher $dispatcher, UrlGenerator $url_generator)
-    {
+    public function __construct(
+        RoutesCollector $collector,
+        RulesGenerator $generator,
+        Matcher $dispatcher,
+        UrlGenerator $url_generator
+    ) {
         $this->collector     = $collector;
         $this->generator     = $generator;
         $this->matcher       = $dispatcher;
