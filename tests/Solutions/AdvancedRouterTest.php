@@ -1,13 +1,12 @@
 <?php
 
-
 namespace Pinepain\SimpleRouting\Tests\Solutions;
 
-
+use PHPUnit\Framework\TestCase;
 use Pinepain\SimpleRouting\Solutions\AdvancedRouter;
 use Pinepain\SimpleRouting\Solutions\SimpleRouter;
 
-class AdvancedRouterTest extends \PHPUnit_Framework_TestCase
+class AdvancedRouterTest extends TestCase
 {
     public function testRemoveTrailingSlash()
     {

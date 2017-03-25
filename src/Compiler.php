@@ -75,6 +75,13 @@ class Compiler
         return new CompiledRoute($regex, $variables, !empty($optional_stack));
     }
 
+    /**
+     * @param $name
+     * @param $format_regex
+     *
+     * @throws Exception
+     * @return null
+     */
     public function validateFormat($name, $format_regex)
     {
         // validate regex and check for nested catching groups

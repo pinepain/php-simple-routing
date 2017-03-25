@@ -3,11 +3,11 @@
 
 namespace Pinepain\SimpleRouting;
 
-
+use PHPUnit\Framework\TestCase;
 use Pinepain\SimpleRouting\Chunks\DynamicChunk;
 use Pinepain\SimpleRouting\Chunks\StaticChunk;
 
-class UrlGeneratorTest extends \PHPUnit_Framework_TestCase
+class UrlGeneratorTest extends TestCase
 {
 
     /**
@@ -18,8 +18,8 @@ class UrlGeneratorTest extends \PHPUnit_Framework_TestCase
     {
         /** @var FormatsHandler | \PHPUnit_Framework_MockObject_MockObject $handler */
         $handler = $this->getMockBuilder(FormatsHandler::class)
-            ->disableOriginalConstructor()
-            ->getMock();
+                        ->disableOriginalConstructor()
+                        ->getMock();
 
         $generator = new UrlGenerator($handler);
 
@@ -35,11 +35,14 @@ class UrlGeneratorTest extends \PHPUnit_Framework_TestCase
     {
         /** @var FormatsHandler | \PHPUnit_Framework_MockObject_MockObject $handler */
         $handler = $this->getMockBuilder(FormatsHandler::class)
-            ->disableOriginalConstructor()
-            ->getMock();
+                        ->disableOriginalConstructor()
+                        ->getMock();
 
         /** @var UrlGenerator | \PHPUnit_Framework_MockObject_MockObject $generator */
-        $generator = $this->getMock(UrlGenerator::class, ['setMap'], [$handler]);
+        $generator = $this->getMockBuilder(UrlGenerator::class)
+                          ->setMethods(['setMap'])
+                          ->setConstructorArgs([$handler])
+                          ->getMock();
 
         /** @var RoutesCollector | \PHPUnit_Framework_MockObject_MockObject $collector */
         $collector = $this->getMockBuilder(RoutesCollector::class)
@@ -57,18 +60,21 @@ class UrlGeneratorTest extends \PHPUnit_Framework_TestCase
         $collector->expects($this->exactly(1))
                   ->method('getDynamicRoutes')
                   ->willReturn([
-                      '/dynamic/{path}' => new Route('dynamic handler', $dynamic_chunks = [new StaticChunk('/dynamic/'), new DynamicChunk('path')]),
-                      '/static/path' => new Route('static handler', [new StaticChunk('static routes should have precedence over dynamic and this one should be ignore')]),
+                      '/dynamic/{path}' => new Route('dynamic handler', $dynamic_chunks = [
+                          new StaticChunk('/dynamic/'),
+                          new DynamicChunk('path'),
+                      ]),
+                      '/static/path'    => new Route('static handler', [new StaticChunk('static routes should have precedence over dynamic and this one should be ignore')]),
                   ]);
 
         $generator->expects($this->once())
-            ->method('setMap')
-            ->with(
-                [
-                    'static handler' => $static_chunks,
-                    'dynamic handler' => $dynamic_chunks,
-                ]
-            );
+                  ->method('setMap')
+                  ->with(
+                      [
+                          'static handler' => $static_chunks,
+                          'dynamic handler' => $dynamic_chunks,
+                      ]
+                  );
 
         $generator->setMapFromRoutesCollector($collector);
     }
@@ -80,8 +86,8 @@ class UrlGeneratorTest extends \PHPUnit_Framework_TestCase
     {
         /** @var \Pinepain\SimpleRouting\FormatsHandler | \PHPUnit_Framework_MockObject_MockObject $handler */
         $handler = $this->getMockBuilder(FormatsHandler::class)
-            ->disableOriginalConstructor()
-            ->getMock();
+                        ->disableOriginalConstructor()
+                        ->getMock();
 
         $generator = new UrlGenerator($handler);
 
@@ -111,19 +117,19 @@ class UrlGeneratorTest extends \PHPUnit_Framework_TestCase
     {
         /** @var \Pinepain\SimpleRouting\FormatsHandler | \PHPUnit_Framework_MockObject_MockObject $handler */
         $handler = $this->getMockBuilder(FormatsHandler::class)
-            ->setMethods(['handle'])
-            ->disableOriginalConstructor()
-            ->getMock();
+                        ->setMethods(['handle'])
+                        ->disableOriginalConstructor()
+                        ->getMock();
 
         $handler->expects($this->at(0))
-            ->method('handle')
-            ->with('format-1', 'value-1')
-            ->willReturn('handled-1');
+                ->method('handle')
+                ->with('format-1', 'value-1')
+                ->willReturn('handled-1');
 
         $handler->expects($this->at(1))
-            ->method('handle')
-            ->with('format-2', 'value-2')
-            ->willReturn('handled-2');
+                ->method('handle')
+                ->with('format-2', 'value-2')
+                ->willReturn('handled-2');
 
         $generator = new UrlGenerator($handler);
 
@@ -139,18 +145,18 @@ class UrlGeneratorTest extends \PHPUnit_Framework_TestCase
     {
         /** @var UrlGenerator | \PHPUnit_Framework_MockObject_MockObject $generator */
         $generator = $this->getMockBuilder(UrlGenerator::class)
-            ->setMethods(['getMap', 'handleStaticPart', 'handleParameter'])
-            ->disableOriginalConstructor()
-            ->getMock();
+                          ->setMethods(['getMap', 'handleStaticPart', 'handleParameter'])
+                          ->disableOriginalConstructor()
+                          ->getMock();
 
         $generator->expects($this->exactly(2))
-            ->method('getMap')
-            ->willReturn(['test' => [new StaticChunk('/test')]]);
+                  ->method('getMap')
+                  ->willReturn(['test' => [new StaticChunk('/test')]]);
 
         $generator->expects($this->once())
-            ->method('handleStaticPart')
-            ->with('/test')
-            ->willReturn('/test-handled');
+                  ->method('handleStaticPart')
+                  ->with('/test')
+                  ->willReturn('/test-handled');
 
         $this->assertNull($generator->generate('nonexistent'));
         $this->assertEquals('/test-handled', $generator->generate('test'));
@@ -158,46 +164,46 @@ class UrlGeneratorTest extends \PHPUnit_Framework_TestCase
 
         /** @var UrlGenerator | \PHPUnit_Framework_MockObject_MockObject $generator */
         $generator = $this->getMockBuilder(UrlGenerator::class)
-            ->setMethods(['getMap', 'handleStaticPart', 'handleParameter'])
-            ->disableOriginalConstructor()
-            ->getMock();
+                          ->setMethods(['getMap', 'handleStaticPart', 'handleParameter'])
+                          ->disableOriginalConstructor()
+                          ->getMock();
 
         $generator->expects($this->any())
-            ->method('getMap')
-            ->willReturn([
-                'test' => [
-                    new StaticChunk('/test'),
-                    new DynamicChunk('name', 'format', 'default-value', '/delimiter/')
-                ]
-            ]);
+                  ->method('getMap')
+                  ->willReturn([
+                      'test' => [
+                          new StaticChunk('/test'),
+                          new DynamicChunk('name', 'format', 'default-value', '/delimiter/'),
+                      ],
+                  ]);
 
         $generator->expects($this->any())
-            ->method('handleStaticPart')
-            ->withConsecutive(
-                ['/test'], ['/delimiter/'],
-                ['/test'], ['/delimiter/'],
-                ['/test'], ['/delimiter/'],
-                ['/test']
-            )
-            ->willReturnOnConsecutiveCalls(
-                '/test-handled', '/delimiter-handled/',
-                '/test-handled', '/delimiter-handled/',
-                '/test-handled', '/delimiter-handled/',
-                '/test-handled'
-            );
+                  ->method('handleStaticPart')
+                  ->withConsecutive(
+                      ['/test'], ['/delimiter/'],
+                      ['/test'], ['/delimiter/'],
+                      ['/test'], ['/delimiter/'],
+                      ['/test']
+                  )
+                  ->willReturnOnConsecutiveCalls(
+                      '/test-handled', '/delimiter-handled/',
+                      '/test-handled', '/delimiter-handled/',
+                      '/test-handled', '/delimiter-handled/',
+                      '/test-handled'
+                  );
 
         $generator->expects($this->any())
-            ->method('handleParameter')
-            ->withConsecutive(
-                ['format', 'new-value', 'name'],
-                ['format', 'default-value', 'name'],
-                ['format', '0', 'name']
-            )
-            ->willReturnOnConsecutiveCalls(
-                'new-value-handled',
-                'default-value-handled',
-                '0-handled'
-            );
+                  ->method('handleParameter')
+                  ->withConsecutive(
+                      ['format', 'new-value', 'name'],
+                      ['format', 'default-value', 'name'],
+                      ['format', '0', 'name']
+                  )
+                  ->willReturnOnConsecutiveCalls(
+                      'new-value-handled',
+                      'default-value-handled',
+                      '0-handled'
+                  );
 
         $this->assertEquals(
             '/test-handled/delimiter-handled/new-value-handled',
@@ -225,18 +231,18 @@ class UrlGeneratorTest extends \PHPUnit_Framework_TestCase
     {
         /** @var UrlGenerator | \PHPUnit_Framework_MockObject_MockObject $generator */
         $generator = $this->getMockBuilder(UrlGenerator::class)
-            ->setMethods(['getMap', 'handleStaticPart', 'handleParameter'])
-            ->disableOriginalConstructor()
-            ->getMock();
+                          ->setMethods(['getMap', 'handleStaticPart', 'handleParameter'])
+                          ->disableOriginalConstructor()
+                          ->getMock();
 
         $generator->expects($this->any())
-            ->method('getMap')
-            ->willReturn([
-                'test' => [
-                    new StaticChunk('/test'),
-                    new DynamicChunk('name', 'format', false, '/delimiter/')
-                ]
-            ]);
+                  ->method('getMap')
+                  ->willReturn([
+                      'test' => [
+                          new StaticChunk('/test'),
+                          new DynamicChunk('name', 'format', false, '/delimiter/'),
+                      ],
+                  ]);
 
         $generator->generate('test');
     }
@@ -251,23 +257,23 @@ class UrlGeneratorTest extends \PHPUnit_Framework_TestCase
     {
         /** @var UrlGenerator | \PHPUnit_Framework_MockObject_MockObject $generator */
         $generator = $this->getMockBuilder(UrlGenerator::class)
-            ->setMethods(['getMap', 'handleStaticPart', 'handleParameter'])
-            ->disableOriginalConstructor()
-            ->getMock();
+                          ->setMethods(['getMap', 'handleStaticPart', 'handleParameter'])
+                          ->disableOriginalConstructor()
+                          ->getMock();
 
         $generator->expects($this->once())
-            ->method('getMap')
-            ->willReturn([
-                'test' => [
-                    new StaticChunk('/test'),
-                    new DynamicChunk('name', 'format', false, '/delimiter/')
-                ]
-            ]);
+                  ->method('getMap')
+                  ->willReturn([
+                      'test' => [
+                          new StaticChunk('/test'),
+                          new DynamicChunk('name', 'format', false, '/delimiter/'),
+                      ],
+                  ]);
 
         $generator->expects($this->once())
-            ->method('handleStaticPart')
-            ->with('/test')
-            ->willReturn('/test-handled');
+                  ->method('handleStaticPart')
+                  ->with('/test')
+                  ->willReturn('/test-handled');
 
         $generator->generate('test', ['name' => '']);
     }
@@ -282,23 +288,23 @@ class UrlGeneratorTest extends \PHPUnit_Framework_TestCase
     {
         /** @var UrlGenerator | \PHPUnit_Framework_MockObject_MockObject $generator */
         $generator = $this->getMockBuilder(UrlGenerator::class)
-            ->setMethods(['getMap', 'handleStaticPart', 'handleParameter'])
-            ->disableOriginalConstructor()
-            ->getMock();
+                          ->setMethods(['getMap', 'handleStaticPart', 'handleParameter'])
+                          ->disableOriginalConstructor()
+                          ->getMock();
 
         $generator->expects($this->once())
-            ->method('getMap')
-            ->willReturn([
-                'test' => [
-                    new StaticChunk('/test'),
-                    new DynamicChunk('name', 'format', '', '/delimiter/')
-                ]
-            ]);
+                  ->method('getMap')
+                  ->willReturn([
+                      'test' => [
+                          new StaticChunk('/test'),
+                          new DynamicChunk('name', 'format', '', '/delimiter/'),
+                      ],
+                  ]);
 
         $generator->expects($this->once())
-            ->method('handleStaticPart')
-            ->with('/test')
-            ->willReturn('/test-handled');
+                  ->method('handleStaticPart')
+                  ->with('/test')
+                  ->willReturn('/test-handled');
 
         $generator->generate('test', [], true);
     }

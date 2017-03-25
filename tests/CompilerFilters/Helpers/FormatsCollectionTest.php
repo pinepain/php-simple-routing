@@ -3,10 +3,10 @@
 
 namespace Pinepain\SimpleRouting\Tests\Filters;
 
-
+use PHPUnit\Framework\TestCase;
 use Pinepain\SimpleRouting\CompilerFilters\Helpers\FormatsCollection;
 
-class FormatsCollectionTest extends \PHPUnit_Framework_TestCase
+class FormatsCollectionTest extends TestCase
 {
     private $preset = [
         ['segment', '[^/]+', ['default']],

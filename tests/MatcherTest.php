@@ -1,14 +1,13 @@
 <?php
 
-
 namespace Pinepain\SimpleRouting\Tests;
 
-
+use PHPUnit\Framework\TestCase;
 use Pinepain\SimpleRouting\Match;
 use Pinepain\SimpleRouting\Matcher;
 use Pinepain\SimpleRouting\Route;
 
-class MatcherTest extends \PHPUnit_Framework_TestCase
+class MatcherTest extends TestCase
 {
     /**
      * @covers \Pinepain\SimpleRouting\Matcher::extractVariablesFromMatches
@@ -42,7 +41,9 @@ class MatcherTest extends \PHPUnit_Framework_TestCase
     public function testMatchDynamicRoute()
     {
         /** @var Matcher | \PHPUnit_Framework_MockObject_MockObject $dispatcher */
-        $dispatcher = $this->getMock(Matcher::class, ['extractVariablesFromMatches']);
+        $dispatcher = $this->getMockBuilder(Matcher::class)
+                           ->setMethods(['extractVariablesFromMatches'])
+                           ->getMock();
 
         $dispatcher->expects($this->atLeast(1))->method('extractVariablesFromMatches')->willReturn(['resolved' => 'vars']);
 
@@ -74,15 +75,17 @@ class MatcherTest extends \PHPUnit_Framework_TestCase
      */
     public function testMatch()
     {
-        $static_rules  = ['abcd' => new Route('here will be dragons', []), 'a' => new Route('static overrides dynamic', [])];
+        $static_rules  = [
+            'abcd' => new Route('here will be dragons', []),
+            'a'    => new Route('static overrides dynamic', []),
+        ];
         $dynamic_rules = ['here will be no dragons, but only dynamic rules'];
 
         /** @var Matcher | \PHPUnit_Framework_MockObject_MockObject $dispatcher */
-        $dispatcher = $this->getMock(
-            Matcher::class,
-            ['matchDynamicRoute'],
-            [$static_rules, $dynamic_rules]
-        );
+        $dispatcher = $this->getMockBuilder(Matcher::class)
+                           ->setMethods(['matchDynamicRoute'])
+                           ->setConstructorArgs([$static_rules, $dynamic_rules])
+                           ->getMock();
 
         $dispatcher->expects($this->at(0))
                    ->method('matchDynamicRoute')

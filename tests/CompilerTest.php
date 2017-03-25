@@ -3,12 +3,13 @@
 
 namespace Pinepain\SimpleRouting\Tests;
 
+use PHPUnit\Framework\TestCase;
 use Pinepain\SimpleRouting\Chunks\DynamicChunk;
 use Pinepain\SimpleRouting\Chunks\StaticChunk;
 use Pinepain\SimpleRouting\CompiledRoute;
 use Pinepain\SimpleRouting\Compiler;
 
-class CompilerTest extends \PHPUnit_Framework_TestCase
+class CompilerTest extends TestCase
 {
     /**
      * @var Compiler
@@ -29,8 +30,8 @@ class CompilerTest extends \PHPUnit_Framework_TestCase
     {
         $compiler = $this->compiler;
 
-        $compiler->validateFormat('name', 'format');
-        $compiler->validateFormat('name', 'test');
+        $this->assertNull($compiler->validateFormat('name', 'format'));
+        $this->assertNull($compiler->validateFormat('name', 'test'));
     }
 
     /**

@@ -2,9 +2,10 @@
 
 namespace Pinepain\SimpleRouting\Tests\Filters;
 
+use PHPUnit\Framework\TestCase;
 use Pinepain\SimpleRouting\CompilerFilters\Dummy;
 
-class DummyTest extends \PHPUnit_Framework_TestCase
+class DummyTest extends TestCase
 {
     /**
      * @covers \Pinepain\SimpleRouting\CompilerFilters\Dummy

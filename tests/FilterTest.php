@@ -1,14 +1,12 @@
 <?php
 
-
 namespace Pinepain\SimpleRouting\Tests;
 
-use Mockery as m;
-
+use PHPUnit\Framework\TestCase;
 use Pinepain\SimpleRouting\Contracts\CompilerFilterInterface;
 use Pinepain\SimpleRouting\Filter;
 
-class FilterTest extends \PHPUnit_Framework_TestCase
+class FilterTest extends TestCase
 {
     /**
      * @var Filter
@@ -85,12 +83,4 @@ class FilterTest extends \PHPUnit_Framework_TestCase
 
         $this->assertSame(['parsed', 'route', 'filtered', 'twice'], $filter->filter(['parsed', 'route']));
     }
-
-    protected function tearDown()
-    {
-        parent::tearDown();
-        m::close();
-    }
-
-
 }

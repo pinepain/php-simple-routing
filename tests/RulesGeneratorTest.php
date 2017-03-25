@@ -3,7 +3,7 @@
 
 namespace Pinepain\SimpleRouting\Tests;
 
-use Mockery as m;
+use PHPUnit\Framework\TestCase;
 use Pinepain\SimpleRouting\Chunks\DynamicChunk;
 use Pinepain\SimpleRouting\CompiledRoute;
 use Pinepain\SimpleRouting\Compiler;
@@ -11,7 +11,7 @@ use Pinepain\SimpleRouting\Contracts\CompilerFilterInterface;
 use Pinepain\SimpleRouting\Route;
 use Pinepain\SimpleRouting\RulesGenerator;
 
-class RulesGeneratorTest extends \PHPUnit_Framework_TestCase
+class RulesGeneratorTest extends TestCase
 {
 
     /**
@@ -207,12 +207,4 @@ class RulesGeneratorTest extends \PHPUnit_Framework_TestCase
         );
 
     }
-
-    protected function tearDown()
-    {
-        parent::tearDown();
-        m::close();
-    }
-
-
 }

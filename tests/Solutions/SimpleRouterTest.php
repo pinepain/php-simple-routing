@@ -1,16 +1,15 @@
 <?php
 
-
 namespace Pinepain\SimpleRouting\Tests\Solutions;
 
-
+use PHPUnit\Framework\TestCase;
 use Pinepain\SimpleRouting\Matcher;
 use Pinepain\SimpleRouting\RoutesCollector;
 use Pinepain\SimpleRouting\RulesGenerator;
 use Pinepain\SimpleRouting\Solutions\SimpleRouter;
 use Pinepain\SimpleRouting\UrlGenerator;
 
-class SimpleRouterTest extends \PHPUnit_Framework_TestCase
+class SimpleRouterTest extends TestCase
 {
     /**
      * @covers \Pinepain\SimpleRouting\Solutions\SimpleRouter::__construct

@@ -1,12 +1,11 @@
 <?php
 
-
 namespace Pinepain\SimpleRouting\Tests;
 
-
+use PHPUnit\Framework\TestCase;
 use Pinepain\SimpleRouting\FormatsHandler;
 
-class FormatsHandlerTest extends \PHPUnit_Framework_TestCase
+class FormatsHandlerTest extends TestCase
 {
     /**
      * \Pinepain\SimpleRouting\FormatsHandler::handleDefault
@@ -38,23 +37,22 @@ class FormatsHandlerTest extends \PHPUnit_Framework_TestCase
      */
     public function testHandle()
     {
-        $format_handler = $this->getMock('stdClass', ['handle']);
+        $format_handler = $this->getMockBuilder('stdClass')->setMethods(['handle'])->getMock();
         $format_handler->expects($this->once())
-            ->method('handle')
-            ->with('value')
-            ->willReturn('handled');
+                       ->method('handle')
+                       ->with('value')
+                       ->willReturn('handled');
 
         /** @var FormatsHandler | \PHPUnit_Framework_MockObject_MockObject $handler */
-        $handler = $this->getMock(
-            FormatsHandler::class,
-            ['handleDefault'],
-            [['known' => $format_handler]]
-        );
+        $handler = $this->getMockBuilder(FormatsHandler::class)
+                        ->setMethods(['handleDefault'])
+                        ->setConstructorArgs([['known' => $format_handler]])
+                        ->getMock();
 
         $handler->expects($this->once())
-            ->method('handleDefault')
-            ->with('value')
-            ->willReturn('handled default');
+                ->method('handleDefault')
+                ->with('value')
+                ->willReturn('handled default');
 
         $this->assertEquals('handled', $handler->handle('known', 'value'));
         $this->assertEquals('handled default', $handler->handle('unknown', 'value'));

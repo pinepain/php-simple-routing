@@ -3,13 +3,14 @@
 
 namespace Pinepain\SimpleRouting\Tests;
 
+use PHPUnit\Framework\TestCase;
 use Pinepain\SimpleRouting\Chunks\DynamicChunk;
 use Pinepain\SimpleRouting\Chunks\StaticChunk;
 use Pinepain\SimpleRouting\Parser;
 use Pinepain\SimpleRouting\Route;
 use Pinepain\SimpleRouting\RoutesCollector;
 
-class RoutesCollectorTest extends \PHPUnit_Framework_TestCase
+class RoutesCollectorTest extends TestCase
 {
     /**
      * @var RoutesCollector | \PHPUnit_Framework_MockObject_MockObject
@@ -21,7 +22,7 @@ class RoutesCollectorTest extends \PHPUnit_Framework_TestCase
         parent::setUp();
 
         /** @var Parser | \PHPUnit_Framework_MockObject_MockObject $parser */
-        $parser = $this->getMock(Parser::class);
+        $parser = $this->getMockBuilder(Parser::class)->getMock();
 
         $this->collector = new RoutesCollector($parser);
     }
@@ -49,7 +50,7 @@ class RoutesCollectorTest extends \PHPUnit_Framework_TestCase
     public function testAddStaticRoute()
     {
         /** @var Parser | \PHPUnit_Framework_MockObject_MockObject $parser */
-        $parser = $this->getMock(Parser::class);
+        $parser = $this->getMockBuilder(Parser::class)->getMock();
 
         $parser->expects($this->any())
                ->method('parse')
@@ -85,7 +86,7 @@ class RoutesCollectorTest extends \PHPUnit_Framework_TestCase
     public function testAddDynamicRoute()
     {
         /** @var Parser | \PHPUnit_Framework_MockObject_MockObject $parser */
-        $parser = $this->getMock(Parser::class);
+        $parser = $this->getMockBuilder(Parser::class)->getMock();
 
         $parser
             ->expects($this->atLeast(1))
@@ -124,7 +125,7 @@ class RoutesCollectorTest extends \PHPUnit_Framework_TestCase
     public function testAddDuplicateFailure()
     {
         /** @var Parser | \PHPUnit_Framework_MockObject_MockObject $parser */
-        $parser = $this->getMock(Parser::class);
+        $parser = $this->getMockBuilder(Parser::class)->getMock();
 
         $parser
             ->expects($this->once())

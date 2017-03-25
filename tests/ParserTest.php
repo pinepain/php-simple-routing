@@ -3,11 +3,12 @@
 
 namespace Pinepain\SimpleRouting\Tests\Parser;
 
+use PHPUnit\Framework\TestCase;
 use Pinepain\SimpleRouting\Chunks\DynamicChunk;
 use Pinepain\SimpleRouting\Chunks\StaticChunk;
 use Pinepain\SimpleRouting\Parser;
 
-class ParserTest extends \PHPUnit_Framework_TestCase
+class ParserTest extends TestCase
 {
     /**
      * @var Parser

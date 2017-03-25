@@ -2,6 +2,7 @@
 
 namespace Pinepain\SimpleRouting\Tests;
 
+use PHPUnit\Framework\TestCase;
 use Pinepain\SimpleRouting\Compiler;
 use Pinepain\SimpleRouting\CompilerFilters\Formats;
 use Pinepain\SimpleRouting\CompilerFilters\Helpers\FormatsCollection;
@@ -16,7 +17,7 @@ use Pinepain\SimpleRouting\RulesGenerator;
 use Pinepain\SimpleRouting\Solutions\SimpleRouter;
 use Pinepain\SimpleRouting\UrlGenerator;
 
-class FeaturesTest extends \PHPUnit_Framework_TestCase
+class FeaturesTest extends TestCase
 {
     /**
      * @var SimpleRouter

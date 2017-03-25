@@ -1,12 +1,11 @@
 <?php
 
-
 namespace Pinepain\SimpleRouting\Tests\FormatHandlers;
 
-
+use PHPUnit\Framework\TestCase;
 use Pinepain\SimpleRouting\FormatHandlers\Path;
 
-class PathTest extends \PHPUnit_Framework_TestCase
+class PathTest extends TestCase
 {
     /**
      * @covers \Pinepain\SimpleRouting\FormatHandlers\Path::handle

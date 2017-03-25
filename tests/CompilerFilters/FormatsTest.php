@@ -1,15 +1,14 @@
 <?php
 
-
 namespace Pinepain\SimpleRouting\Tests\Filters;
 
-
+use PHPUnit\Framework\TestCase;
 use Pinepain\SimpleRouting\Chunks\DynamicChunk;
 use Pinepain\SimpleRouting\Chunks\StaticChunk;
 use Pinepain\SimpleRouting\CompilerFilters\Formats;
 use Pinepain\SimpleRouting\CompilerFilters\Helpers\FormatsCollection;
 
-class FormatsTest extends \PHPUnit_Framework_TestCase
+class FormatsTest extends TestCase
 {
     /**
      * @covers \Pinepain\SimpleRouting\CompilerFilters\Formats::handleMissedFormat
@@ -17,7 +16,7 @@ class FormatsTest extends \PHPUnit_Framework_TestCase
     public function testHandleMissedFormat()
     {
         /** @var FormatsCollection | \PHPUnit_Framework_MockObject_MockObject $collection */
-        $collection = $this->getMock(FormatsCollection::class);
+        $collection = $this->getMockBuilder(FormatsCollection::class)->getMock();
 
         $filter = new Formats($collection);
 
@@ -31,7 +30,7 @@ class FormatsTest extends \PHPUnit_Framework_TestCase
      */
     public function testFilter()
     {
-        $collection = $this->getMock(FormatsCollection::class, ['find']);
+        $collection = $this->getMockBuilder(FormatsCollection::class, ['find'])->getMock();
 
         $collection->expects($this->at(0))
                    ->method('find')
@@ -50,7 +49,10 @@ class FormatsTest extends \PHPUnit_Framework_TestCase
 
 
         /** @var Formats | \PHPUnit_Framework_MockObject_MockObject $filter */
-        $filter = $this->getMock(Formats::class, ['handleMissedFormat'], [$collection, 'default-x']);
+        $filter = $this->getMockBuilder(Formats::class)
+                       ->setMethods(['handleMissedFormat'])
+                       ->setConstructorArgs([$collection, 'default-x'])
+                       ->getMock();
 
         $filter->expects($this->once())
                ->method('handleMissedFormat')
