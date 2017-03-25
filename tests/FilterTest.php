@@ -5,6 +5,7 @@ namespace Pinepain\SimpleRouting\Tests;
 
 use Mockery as m;
 
+use Pinepain\SimpleRouting\Contracts\CompilerFilterInterface;
 use Pinepain\SimpleRouting\Filter;
 
 class FilterTest extends \PHPUnit_Framework_TestCase
@@ -58,16 +59,27 @@ class FilterTest extends \PHPUnit_Framework_TestCase
     {
         $filter = $this->filter;
 
-        $filter_1 = m::mock('stdClass');
-        $filter_1->shouldReceive('filter')->with(['parsed', 'route'])->andReturn(['parsed', 'route', 'filtered']);
+        /** @var CompilerFilterInterface | \PHPUnit_Framework_MockObject_MockObject $filter_1 */
+        $filter_1 = $this->getMockBuilder(CompilerFilterInterface::class)
+            ->disableOriginalConstructor()
+            ->setMethods(['filter'])
+            ->getMock();
 
-        $filter_2 = m::mock('stdClass');
-        $filter_2->shouldReceive('filter')->with(['parsed', 'route', 'filtered'])->andReturn([
-            'parsed',
-            'route',
-            'filtered',
-            'twice'
-        ]);
+        /** @var CompilerFilterInterface | \PHPUnit_Framework_MockObject_MockObject $filter_2 */
+        $filter_2 = $this->getMockBuilder(CompilerFilterInterface::class)
+                         ->disableOriginalConstructor()
+                         ->setMethods(['filter'])
+                         ->getMock();
+
+        $filter_1->expects($this->once())
+            ->method('filter')
+            ->with(['parsed', 'route'])
+            ->willReturn(['parsed', 'route', 'filtered']);
+
+        $filter_2->expects($this->once())
+                 ->method('filter')
+                 ->with(['parsed', 'route', 'filtered'])
+                 ->willReturn(['parsed', 'route', 'filtered', 'twice']);
 
         $filter->setFilters([$filter_1, $filter_2]);
 

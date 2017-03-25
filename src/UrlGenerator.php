@@ -4,12 +4,16 @@
 namespace Pinepain\SimpleRouting;
 
 
+use Pinepain\SimpleRouting\Chunks\AbstractChunk;
+use Pinepain\SimpleRouting\Chunks\DynamicChunk;
+use Pinepain\SimpleRouting\Chunks\StaticChunk;
+
 class UrlGenerator
 {
     /**
-     * @var array
+     * @var AbstractChunk[][]
      */
-    private $map = array();
+    private $map = [];
 
     /**
      * @var FormatsHandler
@@ -21,14 +25,16 @@ class UrlGenerator
         $this->types_handler = $types_handler;
     }
 
-    public function setMapFromRoutes(array $routes)
+    public function setMapFromRoutesCollector(RoutesCollector $collector)
     {
-        $map = array();
+        $map = [];
 
-        foreach ($routes as $route => $set) {
-            list($handler, $parsed) = $set;
+        foreach ($collector->getDynamicRoutes() as $route) {
+            $map[$route->handler] = $route->chunks;
+        }
 
-            $map[$handler] = $parsed;
+        foreach ($collector->getStaticRoutes() as $route) {
+            $map[$route->handler] = $route->chunks;
         }
 
         $this->setMap($map);
@@ -48,13 +54,13 @@ class UrlGenerator
      * Generate URL
      *
      * @param string $handler Route definition identifier
-     * @param array  $params  Route parameter values
-     * @param bool   $full    Whether missed optional parameters should be included in built URL
+     * @param array $params Route parameter values
+     * @param bool $full Whether missed optional parameters should be included in built URL
      *
      * @return string Generated URL
      * @throws Exception
      */
-    public function generate($handler, array $params = array(), $full = false)
+    public function generate($handler, array $params = [], $full = false)
     {
         $map = $this->getMap();
 
@@ -67,39 +73,43 @@ class UrlGenerator
         $route = '';
 
         foreach ($parsed as $chunk) {
-            if (is_string($chunk)) {
-                // we have url part
-                $route .= $this->handleStaticPart($chunk);
+            if ($chunk->isStatic()) {
+                /** @var StaticChunk $chunk */
+                $route .= $this->handleStaticPart($chunk->static);
 
                 continue;
             }
+            /** @var DynamicChunk $chunk */
 
-            // we have parameter definition
-            list($name, $format, $default, $delimiter) = $chunk;
 
-            if ($default === false && !isset($params[$name])) {
-                throw new Exception("Required parameter '{$name}' value missed");
+            if ($chunk->default === false && !isset($params[$chunk->name])) {
+                throw new Exception("Required parameter '{$chunk->name}' value missed");
             }
 
-            if ($default !== false && !isset($params[$name]) && !$full) {
+            if ($chunk->default !== false && !isset($params[$chunk->name]) && !$full) {
                 break;
             }
 
-            $value = isset($params[$name]) ? $params[$name] : $default;
+            $value = isset($params[$chunk->name]) ? $params[$chunk->name] : $chunk->default;
 
             if (strval($value) !== '0' && empty($value)) {
-                if (isset($params[$name])) {
-                    throw new Exception("Empty value provided for parameter '{$name}'");
+                if (isset($params[$chunk->name])) {
+                    throw new Exception("Empty value provided for parameter '{$chunk->name}'");
                 } else {
-                    throw new Exception("Empty default value for parameter '{$name}' set and no other value provided");
+                    throw new Exception("Empty default value for parameter '{$chunk->name}' set and no other value provided");
                 }
             }
 
-            if ($delimiter) {
-                $route .= $this->handleStaticPart($delimiter);
+            // TODO: handle leading and trailing delimiter
+            if ($chunk->leading_delimiter) {
+                $route .= $this->handleStaticPart($chunk->leading_delimiter);
             }
 
-            $route .= $this->handleParameter($format, $value, $name);
+            $route .= $this->handleParameter($chunk->format, $value, $chunk->name);
+
+            if ($chunk->trailing_delimiter) {
+                $route .= $this->handleStaticPart($chunk->trailing_delimiter);
+            }
         }
 
         return $route;

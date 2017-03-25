@@ -4,7 +4,10 @@
 namespace Pinepain\SimpleRouting\Tests\Filters;
 
 
+use Pinepain\SimpleRouting\Chunks\DynamicChunk;
+use Pinepain\SimpleRouting\Chunks\StaticChunk;
 use Pinepain\SimpleRouting\CompilerFilters\Formats;
+use Pinepain\SimpleRouting\CompilerFilters\Helpers\FormatsCollection;
 
 class FormatsTest extends \PHPUnit_Framework_TestCase
 {
@@ -13,7 +16,8 @@ class FormatsTest extends \PHPUnit_Framework_TestCase
      */
     public function testHandleMissedFormat()
     {
-        $collection = $this->getMock('Pinepain\SimpleRouting\CompilerFilters\Helpers\FormatsCollection');
+        /** @var FormatsCollection | \PHPUnit_Framework_MockObject_MockObject $collection */
+        $collection = $this->getMock(FormatsCollection::class);
 
         $filter = new Formats($collection);
 
@@ -27,47 +31,43 @@ class FormatsTest extends \PHPUnit_Framework_TestCase
      */
     public function testFilter()
     {
-        $collection = $this->getMock('Pinepain\SimpleRouting\CompilerFilters\Helpers\FormatsCollection', ['find']);
-
+        $collection = $this->getMock(FormatsCollection::class, ['find']);
 
         $collection->expects($this->at(0))
-            ->method('find')
-            ->with('found')
-            ->willReturn('found-regex');
+                   ->method('find')
+                   ->with('found')
+                   ->willReturn('found-regex');
 
         $collection->expects($this->at(1))
-            ->method('find')
-            ->with('default-x')
-            ->willReturn('default-regex');
+                   ->method('find')
+                   ->with('default-x')
+                   ->willReturn('default-regex');
 
         $collection->expects($this->at(2))
-            ->method('find')
-            ->with('missed')
-            ->willReturn(null);
+                   ->method('find')
+                   ->with('missed')
+                   ->willReturn(null);
 
 
-        $filter = $this->getMock(
-            '\Pinepain\SimpleRouting\CompilerFilters\Formats',
-            ['handleMissedFormat'],
-            [$collection, 'default-x']
-        );
+        /** @var Formats | \PHPUnit_Framework_MockObject_MockObject $filter */
+        $filter = $this->getMock(Formats::class, ['handleMissedFormat'], [$collection, 'default-x']);
 
         $filter->expects($this->once())
-            ->method('handleMissedFormat')
-            ->willReturn('missed-handled');
+               ->method('handleMissedFormat')
+               ->willReturn('missed-handled');
 
         $parsed = [
-            'static',
-            ['test-found', 'found', 'default', 'delimiter'],
-            ['test-default', null, 'default', 'delimiter'],
-            ['test-missed', 'missed', 'default', 'delimiter'],
+            new StaticChunk('static'),
+            new DynamicChunk('test-found', 'found', 'default', 'delimiter'),
+            new DynamicChunk('test-default', null, 'default', 'delimiter'),
+            new DynamicChunk('test-missed', 'missed', 'default', 'delimiter'),
         ];
 
         $filtered = [
-            'static',
-            ['test-found', 'found-regex', 'default', 'delimiter'],
-            ['test-default', 'default-regex', 'default', 'delimiter'],
-            ['test-missed', 'missed-handled', 'default', 'delimiter'],
+            new StaticChunk('static'),
+            new DynamicChunk('test-found', 'found-regex', 'default', 'delimiter'),
+            new DynamicChunk('test-default', 'default-regex', 'default', 'delimiter'),
+            new DynamicChunk('test-missed', 'missed-handled', 'default', 'delimiter'),
         ];
 
         $this->assertEquals($filtered, $filter->filter($parsed));

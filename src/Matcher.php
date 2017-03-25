@@ -7,7 +7,7 @@ namespace Pinepain\SimpleRouting;
 class Matcher
 {
     /**
-     * @var array
+     * @var Route[]
      */
     private $static_rules;
     /**
@@ -35,10 +35,17 @@ class Matcher
         $this->dynamic_rules = $dynamic_rules;
     }
 
+    /**
+     * @param string $url
+     *
+     * @return array|mixed|null
+     */
     public function match($url)
     {
         if (isset($this->static_rules[$url])) {
-            return $this->static_rules[$url];
+            $route = $this->static_rules[$url];
+
+            return new Match($route->handler);
         }
 
         return $this->matchDynamicRoute($this->dynamic_rules, $url);
@@ -56,7 +63,7 @@ class Matcher
 
             $resolved_variables = $this->extractVariablesFromMatches($matches, $variables);
 
-            return [$handler, $resolved_variables];
+            return new Match($handler, $resolved_variables);
         }
 
         return null;

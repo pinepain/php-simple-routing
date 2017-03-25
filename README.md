@@ -90,7 +90,6 @@ parameters support (optional parameters, default values, etc.).
     }
 ```
     
-    
 *Note: While this framework is rather set of blocks it was built with mind and hope that you will use some IoC container,
 but you can do all that manually.*
 
@@ -149,11 +148,12 @@ Nested parameters are not supported, use groups instead.
 ### Parameter name:
 
 Valid parameter name should start from letter or underscore and can contain alphanumeric, underscore and dash characters,
-no spaces allowed. It can be described with regexp: `[a-zA_Z_][a-zA_Z0-9_]*`.
+no spaces allowed. It can be described with regexp: `[a-zA_Z_][a-zA_Z0-9_-]*`.
 
 These are valid parameter names:
 
  - `{valid_parameter}`
+ - `{valid-parameter}`
  - `{alsoValid}`
  - `{_foo}`
  - `{_}`
@@ -162,7 +162,7 @@ These are valid parameter names:
 
 And these are not:
 
- - `{i-am-invalid}`
+ - `{-i-am-invalid}`
  - `{1slug}`
  - `{}`
  - `{no spaces allowed}`
@@ -185,12 +185,18 @@ Note, that default value is also optional and if not given, `null` will be used 
 
 It is often desired to have optional parameter separator, for example, slash (`/`), optional too. To do so, you can embed any
 punctuation character, except curly brackets (`{`, `}`), colon (`:`), percent (`%`) and question mark (`?`) (anyway,
-question mark is not a part of valid URL path):
+question mark is not a part of valid URL path).
 
  - `/some/route{/optional?}` will match `/some/route/value` and `/some/route`
- - but `/some/route/{optional?}` will match `/some/route/value` and `/some/route/`, but not `/some/route`, and due to URL
-   normalization (removing repeating slashes, trimming closing slash, etc.) such rule will fail for all URLs without
-   optional parameter.
+ - `/some/route/{optional/?}` will match `/some/route/value/` and `/some/route/`
+
+If you follow trailing slash path convention (e.g. you always require trailing slash), than you can specify it after 
+parameter name:
+
+ - `/some/route/{optional?}` will match `/some/route/value` and `/some/route/`, but not `/some/route` or `/some/route/value/`.
+ - `/some/route/{optional/?}` will match `/some/route/value/` and `/some/route/`, but not `/some/route` or `/some/route/value`.
+
+#### Multiple params
 
 Everything after optional parameter, will be optional too. Mandatory parameters after optional become mandatory only if
 optional parameter given. When mandatory parameter given after optional and optional one not given, mandatory parameter
@@ -278,8 +284,27 @@ applied to urls:
     // full example shown above
 ```
 
-
 Alternatively, you can in-line type definition into rule:
 
     /segment/{parameter:\d{2}-\d{2}-\d{4}} 
 
+
+## Leading and trailing slashes 
+
+Routing library makes no assumption which convention does end-user use nor enforce any convention.
+Removing or appending trailing slashes, if any, is not a scope of this library and thus may be enforced
+before rules adding, url matching or on generated url. 
+
+There is `\Pinepain\SimpleRouting\Solutions\AdvancedRouter` class which allows you to specify trailing slash policy for
+rules, matched and generated urls:
+
+```php
+<?php
+    use Pinepain\SimpleRouting\Solutions\AdvancedRouter;
+    
+    $advanced_route = new AdvancedRouter($router, AdvancedRouter::ENFORCE_TRAILING_SLASH);
+    
+    // now trailing slash will be enforced for any rule and url which come in or out of $advanced_router
+```
+
+give a look at `AdvancedRouter` constants to see how you granular trailing slashes policy could be.

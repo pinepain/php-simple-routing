@@ -3,6 +3,8 @@
 
 namespace Pinepain\SimpleRouting\Tests\Parser;
 
+use Pinepain\SimpleRouting\Chunks\DynamicChunk;
+use Pinepain\SimpleRouting\Chunks\StaticChunk;
 use Pinepain\SimpleRouting\Parser;
 
 class ParserTest extends \PHPUnit_Framework_TestCase
@@ -20,7 +22,7 @@ class ParserTest extends \PHPUnit_Framework_TestCase
     }
 
     /**
-     * @covers Pinepain\SimpleRouting\Parser::lintChunk
+     * @covers \Pinepain\SimpleRouting\Parser::lintChunk
      */
     public function testLintChunk()
     {
@@ -28,12 +30,13 @@ class ParserTest extends \PHPUnit_Framework_TestCase
 
         $this->assertEquals('no-spaces', $parser->lintChunk(' no-spaces  '));
         $this->assertEquals('no-repeated/slashes', $parser->lintChunk('no-repeated/////slashes'));
-        $this->assertEquals('/final/chunk/without/slash', $parser->lintChunk('/final/chunk/without/slash/', true));
+        $this->assertEquals('/final/chunk/without/slash', $parser->lintChunk('/final/chunk/without/slash', true));
+        $this->assertEquals('/final/chunk/with/slash/', $parser->lintChunk('/final/chunk/with/slash/', true));
         $this->assertEquals('/placeholders/{are}/ok', $parser->lintChunk('/placeholders/{are}/ok'));
     }
 
     /**
-     * @covers Pinepain\SimpleRouting\Parser::getChunk
+     * @covers \Pinepain\SimpleRouting\Parser::getChunk
      */
     public function testGetChunk()
     {
@@ -42,122 +45,161 @@ class ParserTest extends \PHPUnit_Framework_TestCase
         //$parser->shouldReceive('lintChunk')->andReturnUsing(function ($arg) {return $arg;});
 
         $this->assertEquals('chunk', $parser->getChunk('/test/chunk/string', 6, 11));
-        $this->assertEquals('\~quoted\~', $parser->getChunk('/test/~quoted~/string', 6, 14));
+        $this->assertEquals('~quoted~', $parser->getChunk('/test/~quoted~/string', 6, 14));
 
     }
 
 
     /**
-     * @covers Pinepain\SimpleRouting\Parser::parse
+     * @covers \Pinepain\SimpleRouting\Parser::parse
      */
     public function testParse()
     {
         $parser = $this->parser;
 
-        $this->assertEquals(['/i/am/static'], $parser->parse('/i/am/static/'));
+        $this->assertEquals([new StaticChunk('/i/am/static')], $parser->parse('/i/am/static'));
+        $this->assertEquals([new StaticChunk('/i-am-dashed')], $parser->parse('/i-am-dashed'));
 
-        $this->assertSame(
+        $this->assertEquals(
             [
-                '/with/',
-                ['parameter', false, false, false]
+                new StaticChunk('/with/'),
+                new DynamicChunk('parameter'),
             ],
             $parser->parse('/with/{parameter}')
         );
 
-        $this->assertSame(
+        $this->assertEquals(
             [
-                '/with/',
-                ['parameter', false, false, false],
-                '/and_tail'
+                new StaticChunk('/with/'),
+                new DynamicChunk('parameter-with-dashes'),
+            ],
+            $parser->parse('/with/{parameter-with-dashes}')
+        );
+
+        $this->assertEquals(
+            [
+                new StaticChunk('/with/'),
+                new DynamicChunk('parameter'),
+                new StaticChunk('/and_tail'),
             ],
             $parser->parse('/with/{parameter}/and_tail')
         );
 
-        $this->assertSame(
+        $this->assertEquals(
             [
-                '/with/',
-                ['one', false, false, false],
-                '/and/',
-                ['two', false, false, false],
+                new StaticChunk('/with/'),
+                new DynamicChunk('one'),
+                new StaticChunk('/and/'),
+                new DynamicChunk('two'),
             ],
             $parser->parse('/with/{one}/and/{two}')
         );
 
-        $this->assertSame(
+        $this->assertEquals(
             [
-                '/with/',
-                ['delimiter', false, false, false]
+                new StaticChunk('/with'),
+                new DynamicChunk('delimiter', false, false, '/'),
             ],
             $parser->parse('/with{/delimiter}')
         );
 
-        $this->assertSame(
+        $this->assertEquals(
             [
-                '/with/',
-                ['optional', false, null, false]
+                new StaticChunk('/with'),
+                new DynamicChunk('delimiter', false, false, false, '/'),
+            ],
+            $parser->parse('/with{delimiter/}')
+        );
+
+        $this->assertEquals(
+            [
+                new StaticChunk('/with'),
+                new DynamicChunk('delimiter', false, false, '/', '/'),
+            ],
+            $parser->parse('/with{/delimiter/}')
+        );
+
+        $this->assertEquals(
+            [
+                new StaticChunk('/with'),
+                new DynamicChunk('delimiter', false, false, '/', '/'),
+                new StaticChunk('test'),
+            ],
+            $parser->parse('/with{/delimiter/}test')
+        );
+
+        $this->assertEquals(
+            [
+                new StaticChunk('/with/'),
+                new DynamicChunk('optional', false, null),
             ],
             $parser->parse('/with/{optional?}')
         );
 
-        $this->assertSame(
+        $this->assertEquals(
             [
-                '/with',
-                ['optional_delimiter', false, null, '/']
+                new StaticChunk('/with'),
+                new DynamicChunk('optional_delimiter', false, null, '/'),
             ],
             $parser->parse('/with{/optional_delimiter?}')
         );
 
-        $this->assertSame(
+        $this->assertEquals(
             [
-                '/with/',
-                ['default', false, 'value', false]
+                new StaticChunk('/with/'),
+                new DynamicChunk('optional_delimiter', false, null, false, '/'),
+            ],
+            $parser->parse('/with/{optional_delimiter/?}')
+        );
+
+        $this->assertEquals(
+            [
+                new StaticChunk('/with/'),
+                new DynamicChunk('default', false, 'value'),
             ],
             $parser->parse('/with/{default?value}')
         );
 
-        $this->assertSame(
+        $this->assertEquals(
             [
-                '/with/',
-                ['format', 'regex_or_name', false, false]
+                new StaticChunk('/with/'),
+                new DynamicChunk('format', 'regex_or_name'),
             ],
             $parser->parse('/with/{format:regex_or_name}')
         );
 
-        $this->assertSame(
+        $this->assertEquals(
             [
-                '/with/',
-                ['format', '[a-z]{2,8}', false, false]
+                new StaticChunk('/with/'),
+                new DynamicChunk('format', '[a-z]{2,8}'),
             ],
             $parser->parse('/with/{format:[a-z]{2,8}}')
         );
 
-        $this->assertSame(
+        $this->assertEquals(
             [
-                '/with/',
-                ['param', false, false, false],
-                '/static/',
-                ['inside', false, false, false],
+                new StaticChunk('/with/'),
+                new DynamicChunk('param'),
+                new StaticChunk('/static'),
+                new DynamicChunk('inside', false, false, '/'),
             ],
             $parser->parse('/with/{param}/static{/inside}')
         );
 
-        $this->assertSame(
+        $this->assertEquals(
             [
-                '/with/',
-                ['params', false, false, false],
-                ['one', false, false, false],
-                ['by', false, false, false],
-                '/',
-                ['one_', false, false, false],
+                new StaticChunk('/with/'),
+                new DynamicChunk('params'),
+                new DynamicChunk('one'),
+                new DynamicChunk('by'),
+                new DynamicChunk('one_', false, false, '/'),
             ],
             $parser->parse('/with/{params}{one}{by}{/one_}')
         );
-
-
     }
 
     /**
-     * @covers                   Pinepain\SimpleRouting\Parser::parse
+     * @covers \Pinepain\SimpleRouting\Parser::parse
      *
      * @expectedException \Pinepain\SimpleRouting\Exception
      * @expectedExceptionMessage Variable 'fail' already defined at offset 8

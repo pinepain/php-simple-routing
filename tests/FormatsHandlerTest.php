@@ -44,9 +44,9 @@ class FormatsHandlerTest extends \PHPUnit_Framework_TestCase
             ->with('value')
             ->willReturn('handled');
 
-        /** @var \Pinepain\SimpleRouting\FormatsHandler | \PHPUnit_Framework_MockObject_MockObject $handler */
+        /** @var FormatsHandler | \PHPUnit_Framework_MockObject_MockObject $handler */
         $handler = $this->getMock(
-            'Pinepain\SimpleRouting\FormatsHandler',
+            FormatsHandler::class,
             ['handleDefault'],
             [['known' => $format_handler]]
         );

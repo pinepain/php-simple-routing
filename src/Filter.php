@@ -4,7 +4,10 @@
 namespace Pinepain\SimpleRouting;
 
 
-class Filter
+use Pinepain\SimpleRouting\Contracts\CompilerFilterInterface;
+
+
+class Filter implements CompilerFilterInterface
 {
     /**
      * @var array|Contracts\CompilerFilterInterface[]

@@ -38,7 +38,7 @@ class FormatsCollectionTest extends \PHPUnit_Framework_TestCase
      */
     public function testAdd()
     {
-        $collection = new \Pinepain\SimpleRouting\CompilerFilters\Helpers\FormatsCollection($this->preset);
+        $collection = new FormatsCollection($this->preset);
 
         $collection->add('test', 'regex', ['test-alias-1', 'test-alias-2']);
 
@@ -54,7 +54,7 @@ class FormatsCollectionTest extends \PHPUnit_Framework_TestCase
      */
     public function testRemove()
     {
-        $collection = new \Pinepain\SimpleRouting\CompilerFilters\Helpers\FormatsCollection($this->preset);
+        $collection = new FormatsCollection($this->preset);
 
         $collection->remove('segment');
 

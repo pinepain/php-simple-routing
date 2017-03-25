@@ -9,7 +9,7 @@ class FormatsCollection
     public $formats = [];
     private $aliases = [];
 
-    public function __construct(array $preset = array())
+    public function __construct(array $preset = [])
     {
         foreach ($preset as $args) {
             call_user_func_array([$this, 'add'], $args);

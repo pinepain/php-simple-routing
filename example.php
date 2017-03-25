@@ -35,6 +35,7 @@ $url_generator   = new UrlGenerator($formats_handler);
 $router = new SimpleRouter($collector, $generator, $dispatcher, $url_generator);
 
 $router->add('/some/{path}', 'handler');
+$router->add('/some/static/path', 'static-handler');
 
 $router->add('/first/route/{with_param}', 'handler1');
 $router->add('/second/{route}/{foo}/{bar}', 'handler2');
@@ -42,6 +43,7 @@ $router->add('/route/{with}{/optional?}{/param?default}', 'handler3');
 
 
 // Url generation example:
+echo $router->url('static-handler'), PHP_EOL; // gives us /some/static/path
 echo $router->url('handler1', ['with_param' => 'param-value']), PHP_EOL; // gives us /first/route/param-value
 echo $router->url('handler2', ['route' => 'example', 'foo' =>'val', 'bar' => 'given']), PHP_EOL; // gives us /second/example/val/given
 echo $router->url('handler3', ['with' => 'some', 'optional' =>'given']), PHP_EOL; // gives us /route/some/given

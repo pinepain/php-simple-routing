@@ -4,13 +4,12 @@
 namespace Pinepain\SimpleRouting\Solutions;
 
 use Pinepain\SimpleRouting\Matcher;
-use Pinepain\SimpleRouting\Filter;
 use Pinepain\SimpleRouting\RoutesCollector;
 use Pinepain\SimpleRouting\RulesGenerator;
 use Pinepain\SimpleRouting\UrlGenerator;
 
 
-class SimpleRouter
+class SimpleRouter implements RouterInterface
 {
     /**
      * @var RoutesCollector
@@ -29,23 +28,25 @@ class SimpleRouter
      */
     private $url_generator;
 
-    public function __construct(
-        RoutesCollector $collector,
-        RulesGenerator $generator,
-        Matcher $dispatcher,
-        UrlGenerator $url_generator
-    ) {
+    public function __construct(RoutesCollector $collector, RulesGenerator $generator, Matcher $matcher, UrlGenerator $url_generator)
+    {
         $this->collector     = $collector;
         $this->generator     = $generator;
-        $this->matcher       = $dispatcher;
+        $this->matcher       = $matcher;
         $this->url_generator = $url_generator;
     }
 
+    /**
+     * {@inheritdoc}
+     */
     public function add($route, $handler)
     {
         return $this->collector->add($route, $handler);
     }
 
+    /**
+     * {@inheritdoc}
+     */
     public function match($url)
     {
         $dynamic_routes = $this->collector->getDynamicRoutes();
@@ -60,19 +61,11 @@ class SimpleRouter
     }
 
     /**
-     * Generate URL
-     *
-     * @param string $handler   Route definition identifier
-     * @param array  $arguments Route parameter values
-     * @param bool   $full      Whether missed optional parameters should be included in built URL
-     *
-     * @return string Generated URL
+     * {@inheritdoc}
      */
-    public function url($handler, array $arguments = array(), $full = false)
+    public function url($handler, array $arguments = [], $full = false)
     {
-        $dynamic_routes = $this->collector->getDynamicRoutes();
-
-        $this->url_generator->setMapFromRoutes($dynamic_routes);
+        $this->url_generator->setMapFromRoutesCollector($this->collector);
 
         $url = $this->url_generator->generate($handler, $arguments, $full);
 

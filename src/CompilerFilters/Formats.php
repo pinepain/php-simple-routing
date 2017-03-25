@@ -2,8 +2,10 @@
 
 namespace Pinepain\SimpleRouting\CompilerFilters;
 
-use Pinepain\SimpleRouting\Contracts\CompilerFilterInterface;
+use Pinepain\SimpleRouting\Chunks\DynamicChunk;
+use Pinepain\SimpleRouting\Chunks\StaticChunk;
 use Pinepain\SimpleRouting\CompilerFilters\Helpers\FormatsCollection;
+use Pinepain\SimpleRouting\Contracts\CompilerFilterInterface;
 
 class Formats implements CompilerFilterInterface
 {
@@ -25,7 +27,7 @@ class Formats implements CompilerFilterInterface
     }
 
     /**
-     * @param array $parsed
+     * @param string[]|DynamicChunk[] $parsed
      *
      * @return array
      */
@@ -34,21 +36,20 @@ class Formats implements CompilerFilterInterface
         $result = [];
 
         foreach ($parsed as $chunk) {
-            if (is_string($chunk)) {
+            if ($chunk->isStatic()) {
+                /** @var StaticChunk $chunk */
                 $result[] = $chunk;
                 continue;
             }
 
-            list($name, $format, $default, $delimiter) = $chunk;
+            /** @var DynamicChunk $chunk */
 
-            $format = $format ?: $this->default_format;
+            $format     = $chunk->format ?: $this->default_format;
+            $new_format = $this->formats->find($format) ?: $this->handleMissedFormat($chunk->name, $format);
 
-            $new_format = $this->formats->find($format) ?: $this->handleMissedFormat($name, $format);
-
-            $result[] = [$name, $new_format, $default, $delimiter];
+            $result[] = new DynamicChunk($chunk->name, $new_format, $chunk->default, $chunk->leading_delimiter, $chunk->trailing_delimiter);
         }
 
         return $result;
     }
-
 }

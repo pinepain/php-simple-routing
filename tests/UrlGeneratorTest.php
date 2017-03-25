@@ -4,6 +4,9 @@
 namespace Pinepain\SimpleRouting;
 
 
+use Pinepain\SimpleRouting\Chunks\DynamicChunk;
+use Pinepain\SimpleRouting\Chunks\StaticChunk;
+
 class UrlGeneratorTest extends \PHPUnit_Framework_TestCase
 {
 
@@ -13,8 +16,8 @@ class UrlGeneratorTest extends \PHPUnit_Framework_TestCase
      */
     public function testGetSetMap()
     {
-        /** @var \Pinepain\SimpleRouting\FormatsHandler | \PHPUnit_Framework_MockObject_MockObject $handler */
-        $handler = $this->getMockBuilder('Pinepain\SimpleRouting\FormatsHandler')
+        /** @var FormatsHandler | \PHPUnit_Framework_MockObject_MockObject $handler */
+        $handler = $this->getMockBuilder(FormatsHandler::class)
             ->disableOriginalConstructor()
             ->getMock();
 
@@ -26,34 +29,48 @@ class UrlGeneratorTest extends \PHPUnit_Framework_TestCase
     }
 
     /**
-     * @covers \Pinepain\SimpleRouting\UrlGenerator::setMapFromRoutes
+     * @covers \Pinepain\SimpleRouting\UrlGenerator::setMapFromRoutesCollector
      */
     public function testSetMapFromRoutes()
     {
-        /** @var \Pinepain\SimpleRouting\FormatsHandler | \PHPUnit_Framework_MockObject_MockObject $handler */
-        $handler = $this->getMockBuilder('Pinepain\SimpleRouting\FormatsHandler')
+        /** @var FormatsHandler | \PHPUnit_Framework_MockObject_MockObject $handler */
+        $handler = $this->getMockBuilder(FormatsHandler::class)
             ->disableOriginalConstructor()
             ->getMock();
 
         /** @var UrlGenerator | \PHPUnit_Framework_MockObject_MockObject $generator */
-        $generator = $this->getMock('Pinepain\SimpleRouting\UrlGenerator', ['setMap'], [$handler]);
+        $generator = $this->getMock(UrlGenerator::class, ['setMap'], [$handler]);
+
+        /** @var RoutesCollector | \PHPUnit_Framework_MockObject_MockObject $collector */
+        $collector = $this->getMockBuilder(RoutesCollector::class)
+                          ->setMethods(['getStaticRoutes', 'getDynamicRoutes'])
+                          ->disableOriginalConstructor()
+                          ->getMock();
+
+
+        $collector->expects($this->exactly(1))
+                  ->method('getStaticRoutes')
+                  ->willReturn([
+                      '/static/path' => new Route('static handler', $static_chunks = [new StaticChunk('/static/path')]),
+                  ]);
+
+        $collector->expects($this->exactly(1))
+                  ->method('getDynamicRoutes')
+                  ->willReturn([
+                      '/dynamic/{path}' => new Route('dynamic handler', $dynamic_chunks = [new StaticChunk('/dynamic/'), new DynamicChunk('path')]),
+                      '/static/path' => new Route('static handler', [new StaticChunk('static routes should have precedence over dynamic and this one should be ignore')]),
+                  ]);
 
         $generator->expects($this->once())
             ->method('setMap')
             ->with(
                 [
-                    'handler-1' => ['parsed-1'],
-                    'handler-3' => ['parsed-3'],
-                    'handler-2' => ['parsed-2-dup'],
+                    'static handler' => $static_chunks,
+                    'dynamic handler' => $dynamic_chunks,
                 ]
             );
 
-        $generator->setMapFromRoutes([
-            'route-1'     => ['handler-1', ['parsed-1']],
-            'route-2'     => ['handler-2', ['parsed-2']],
-            'route-3'     => ['handler-3', ['parsed-3']],
-            'route-2-dup' => ['handler-2', ['parsed-2-dup']],
-        ]);
+        $generator->setMapFromRoutesCollector($collector);
     }
 
     /**
@@ -62,7 +79,7 @@ class UrlGeneratorTest extends \PHPUnit_Framework_TestCase
     public function testHandleStaticPart()
     {
         /** @var \Pinepain\SimpleRouting\FormatsHandler | \PHPUnit_Framework_MockObject_MockObject $handler */
-        $handler = $this->getMockBuilder('Pinepain\SimpleRouting\FormatsHandler')
+        $handler = $this->getMockBuilder(FormatsHandler::class)
             ->disableOriginalConstructor()
             ->getMock();
 
@@ -93,7 +110,7 @@ class UrlGeneratorTest extends \PHPUnit_Framework_TestCase
     public function testHandleParameter()
     {
         /** @var \Pinepain\SimpleRouting\FormatsHandler | \PHPUnit_Framework_MockObject_MockObject $handler */
-        $handler = $this->getMockBuilder('Pinepain\SimpleRouting\FormatsHandler')
+        $handler = $this->getMockBuilder(FormatsHandler::class)
             ->setMethods(['handle'])
             ->disableOriginalConstructor()
             ->getMock();
@@ -121,14 +138,14 @@ class UrlGeneratorTest extends \PHPUnit_Framework_TestCase
     public function testGenerate()
     {
         /** @var UrlGenerator | \PHPUnit_Framework_MockObject_MockObject $generator */
-        $generator = $this->getMockBuilder('Pinepain\SimpleRouting\UrlGenerator')
+        $generator = $this->getMockBuilder(UrlGenerator::class)
             ->setMethods(['getMap', 'handleStaticPart', 'handleParameter'])
             ->disableOriginalConstructor()
             ->getMock();
 
         $generator->expects($this->exactly(2))
             ->method('getMap')
-            ->willReturn(['test' => ['/test']]);
+            ->willReturn(['test' => [new StaticChunk('/test')]]);
 
         $generator->expects($this->once())
             ->method('handleStaticPart')
@@ -140,7 +157,7 @@ class UrlGeneratorTest extends \PHPUnit_Framework_TestCase
 
 
         /** @var UrlGenerator | \PHPUnit_Framework_MockObject_MockObject $generator */
-        $generator = $this->getMockBuilder('Pinepain\SimpleRouting\UrlGenerator')
+        $generator = $this->getMockBuilder(UrlGenerator::class)
             ->setMethods(['getMap', 'handleStaticPart', 'handleParameter'])
             ->disableOriginalConstructor()
             ->getMock();
@@ -149,8 +166,8 @@ class UrlGeneratorTest extends \PHPUnit_Framework_TestCase
             ->method('getMap')
             ->willReturn([
                 'test' => [
-                    '/test',
-                    ['name', 'format', 'default-value', '/delimiter/']
+                    new StaticChunk('/test'),
+                    new DynamicChunk('name', 'format', 'default-value', '/delimiter/')
                 ]
             ]);
 
@@ -207,7 +224,7 @@ class UrlGeneratorTest extends \PHPUnit_Framework_TestCase
     public function testGenerateFailureDueMissedParameter()
     {
         /** @var UrlGenerator | \PHPUnit_Framework_MockObject_MockObject $generator */
-        $generator = $this->getMockBuilder('Pinepain\SimpleRouting\UrlGenerator')
+        $generator = $this->getMockBuilder(UrlGenerator::class)
             ->setMethods(['getMap', 'handleStaticPart', 'handleParameter'])
             ->disableOriginalConstructor()
             ->getMock();
@@ -216,8 +233,8 @@ class UrlGeneratorTest extends \PHPUnit_Framework_TestCase
             ->method('getMap')
             ->willReturn([
                 'test' => [
-                    '/test',
-                    ['name', 'format', false, '/delimiter/']
+                    new StaticChunk('/test'),
+                    new DynamicChunk('name', 'format', false, '/delimiter/')
                 ]
             ]);
 
@@ -233,7 +250,7 @@ class UrlGeneratorTest extends \PHPUnit_Framework_TestCase
     public function testGenerateFailureDueEmptyGivenParameter()
     {
         /** @var UrlGenerator | \PHPUnit_Framework_MockObject_MockObject $generator */
-        $generator = $this->getMockBuilder('Pinepain\SimpleRouting\UrlGenerator')
+        $generator = $this->getMockBuilder(UrlGenerator::class)
             ->setMethods(['getMap', 'handleStaticPart', 'handleParameter'])
             ->disableOriginalConstructor()
             ->getMock();
@@ -242,8 +259,8 @@ class UrlGeneratorTest extends \PHPUnit_Framework_TestCase
             ->method('getMap')
             ->willReturn([
                 'test' => [
-                    '/test',
-                    ['name', 'format', false, '/delimiter/']
+                    new StaticChunk('/test'),
+                    new DynamicChunk('name', 'format', false, '/delimiter/')
                 ]
             ]);
 
@@ -264,7 +281,7 @@ class UrlGeneratorTest extends \PHPUnit_Framework_TestCase
     public function testGenerateFailureDueEmptyDefaultParameter()
     {
         /** @var UrlGenerator | \PHPUnit_Framework_MockObject_MockObject $generator */
-        $generator = $this->getMockBuilder('Pinepain\SimpleRouting\UrlGenerator')
+        $generator = $this->getMockBuilder(UrlGenerator::class)
             ->setMethods(['getMap', 'handleStaticPart', 'handleParameter'])
             ->disableOriginalConstructor()
             ->getMock();
@@ -273,8 +290,8 @@ class UrlGeneratorTest extends \PHPUnit_Framework_TestCase
             ->method('getMap')
             ->willReturn([
                 'test' => [
-                    '/test',
-                    ['name', 'format', '', '/delimiter/']
+                    new StaticChunk('/test'),
+                    new DynamicChunk('name', 'format', '', '/delimiter/')
                 ]
             ]);
 
@@ -285,6 +302,4 @@ class UrlGeneratorTest extends \PHPUnit_Framework_TestCase
 
         $generator->generate('test', [], true);
     }
-
-
 }
