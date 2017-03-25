@@ -58,7 +58,7 @@ class Matcher
 
             return [$handler, $resolved_variables];
         }
-        
+
         return null;
     }
 
@@ -75,5 +75,4 @@ class Matcher
 
         return $result;
     }
-
 }

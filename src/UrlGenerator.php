@@ -10,6 +10,7 @@ class UrlGenerator
      * @var array
      */
     private $map = array();
+
     /**
      * @var FormatsHandler
      */
@@ -43,6 +44,16 @@ class UrlGenerator
         return $this->map;
     }
 
+    /**
+     * Generate URL
+     *
+     * @param string $handler Route definition identifier
+     * @param array  $params  Route parameter values
+     * @param bool   $full    Whether missed optional parameters should be included in built URL
+     *
+     * @return string Generated URL
+     * @throws Exception
+     */
     public function generate($handler, array $params = array(), $full = false)
     {
         $map = $this->getMap();
