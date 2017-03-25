@@ -1,10 +1,9 @@
 language: php
 
 php:
-  - hhvm
-  - 5.4
-  - 5.5
-  - 5.6
+  - 7.0
+  - 7.1
+  - nightly
 
 before_script:
   - composer self-update
@@ -12,4 +11,10 @@ before_script:
 
 script:
   - vendor/bin/phpunit --coverage-text --configuration phpunit.xml
-  - "composer require nikic/fast-route:*@dev && php bench.php"
+
+  - composer require "aura/router":"3.0.*@dev"
+  - composer require "zendframework/zend-diactoros"
+  - composer require "symfony/routing":"3.0.*@dev"
+  - composer require "nikic/fast-route":"1.0.*@dev"
+
+  - php bench.php

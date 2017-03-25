@@ -20,7 +20,7 @@ class CompiledRoute
      */
     private $has_optional;
 
-    function __construct($regex, $variables, $has_optional)
+    public function __construct($regex, $variables, $has_optional)
     {
         $this->regex        = $regex;
         $this->variables    = $variables;

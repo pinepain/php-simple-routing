@@ -1,12 +1,11 @@
 <?php
 
-
 namespace Pinepain\SimpleRouting\Tests;
 
-
+use PHPUnit\Framework\TestCase;
 use Pinepain\SimpleRouting\CompiledRoute;
 
-class CompiledRouteTest extends \PHPUnit_Framework_TestCase
+class CompiledRouteTest extends TestCase
 {
     /**
      * @covers \Pinepain\SimpleRouting\CompiledRoute::__construct

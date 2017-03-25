@@ -4,43 +4,68 @@
 namespace Pinepain\SimpleRouting;
 
 
+use Pinepain\SimpleRouting\Chunks\AbstractChunk;
+use Pinepain\SimpleRouting\Chunks\DynamicChunk;
+use Pinepain\SimpleRouting\Chunks\StaticChunk;
+
 class Compiler
 {
     const REGEX_DELIMITER = '~';
 
+    /**
+     * @param AbstractChunk[] $parsed
+     *
+     * @return CompiledRoute
+     */
     public function compile(array $parsed)
     {
         $regex          = [];
         $optional_stack = [];
         $variables      = [];
 
-        foreach ($parsed as $id => $chunk) {
-            if (is_string($chunk)) {
-                // we have url part
-                $regex[$id] = preg_quote($chunk, static::REGEX_DELIMITER);
+        // TODO: optimize
 
+        foreach ($parsed as $id => $chunk) {
+            if ($chunk->isStatic()) {
+                /** @var StaticChunk $chunk */
+                $regex[$id] = preg_quote($chunk->static, static::REGEX_DELIMITER);
                 continue;
             }
+            /** @var DynamicChunk $chunk */
 
-            // we have parameter definition
-            list($name, $format, $default, $delimiter) = $chunk;
+            $param_regex = '(' . ($chunk->format ?: '[^/]+') . ')';
 
-            $param_regex = '(' . ($format ?: '[^/]+') . ')';
+            if ($chunk->default !== false) {
+                $group = false;
 
-            if ($default !== false) {
-                if ($delimiter) {
-                    $param_regex      = '(?:' . preg_quote($delimiter, static::REGEX_DELIMITER) . $param_regex;
-                    $optional_stack[] = ')?';
-                } else {
-                    $optional_stack[] = '?';
+                if ($chunk->leading_delimiter) {
+                    $group       = true;
+                    $param_regex = '(?:' . preg_quote($chunk->leading_delimiter, static::REGEX_DELIMITER) . $param_regex;
                 }
-            } elseif ($delimiter) {
-                // should not happens in real life due to parser optimization
-                $param_regex = preg_quote($delimiter, static::REGEX_DELIMITER) . $param_regex;
+
+                if ($chunk->trailing_delimiter) {
+                    if (!$group) {
+                        $group       = true;
+                        $param_regex = '(?:' . $param_regex;
+                    }
+
+                    $param_regex .= preg_quote($chunk->trailing_delimiter, static::REGEX_DELIMITER);
+                }
+
+                $optional_stack[] = $group ? ')?' : '?';
+            } else {
+                if ($chunk->leading_delimiter) {
+                    $param_regex = preg_quote($chunk->leading_delimiter, static::REGEX_DELIMITER) . $param_regex;
+                }
+
+                if ($chunk->trailing_delimiter) {
+                    $param_regex .= preg_quote($chunk->trailing_delimiter, static::REGEX_DELIMITER);
+                }
+
             }
 
-            $regex[$id]       = $param_regex;
-            $variables[$name] = $default;
+            $regex[$id]              = $param_regex;
+            $variables[$chunk->name] = $chunk->default;
         }
 
         $regex = array_merge($regex, $optional_stack);
@@ -50,6 +75,13 @@ class Compiler
         return new CompiledRoute($regex, $variables, !empty($optional_stack));
     }
 
+    /**
+     * @param $name
+     * @param $format_regex
+     *
+     * @throws Exception
+     * @return null
+     */
     public function validateFormat($name, $format_regex)
     {
         // validate regex and check for nested catching groups

@@ -4,6 +4,9 @@
 namespace Pinepain\SimpleRouting;
 
 
+use Pinepain\SimpleRouting\Chunks\DynamicChunk;
+use Pinepain\SimpleRouting\Chunks\StaticChunk;
+
 class Parser
 {
     const REGEX_DELIMITER = '~';
@@ -12,9 +15,11 @@ class Parser
         (?<parameter>
         \{
             \s*
-            (?<delimiter>[^\s\w\d:?{}%]+)?    # parameter separator
+            (?<leading_delimiter>[^\s\w\d:?{}%]+)?    # leading parameter separator
             \s*
-            (?<name>[a-zA-Z_][a-zA-Z0-9_]*) # parameter name
+            (?<name>[a-zA-Z_][a-zA-Z0-9_-]*) # parameter name
+            \s*
+            (?<trailing_delimiter>[^\s\w\d:?{}%]+)?    # trailing parameter separator
             \s*
             (?:                     # begin of default value group
                 \?                      # delimiter
@@ -32,10 +37,20 @@ class Parser
         )
     /xu';
 
+    /**
+     * Parse route rule
+     *
+     * @param string $string Route rule string to parse
+     *
+     * @return array Array of parsed chunks. String item stands for static part, array - for parameter rule.
+     * @throws Exception
+     */
     public function parse($string)
     {
         if (!preg_match_all($this->parameters_regex, $string, $matches, PREG_OFFSET_CAPTURE | PREG_SET_ORDER)) {
-            return [$this->lintChunk($string, true)];
+
+            $chunk = new StaticChunk($this->lintChunk($string, true));
+            return [$chunk];
         }
 
         $names = [];
@@ -63,21 +78,22 @@ class Parser
 
             $names[$name] = $offset;
 
-            $delimiter = $match['delimiter'][1] > -1 ? $match['delimiter'][0] : false;
-            $default   = isset($match['default']) && $match['default'][1] > -1 ? $match['default'][0] ?: null : false;
-            $format    = isset($match['format']) ? $match['format'][0] : false;
-
-            if (false === $default && $delimiter) {
-                // optimize rule by appending (or moving) delimiter to previous static path component
-                $chunk     = $chunk . $delimiter;
-                $delimiter = false;
+            $leading_delimiter  = $match['leading_delimiter'][1] > -1 ? $match['leading_delimiter'][0] : false;
+            $trailing_delimiter = false;
+            if (isset($match['trailing_delimiter'])) {
+                $trailing_delimiter = $match['trailing_delimiter'][1] > -1 ? $match['trailing_delimiter'][0] : false;
             }
+
+            $default = isset($match['default']) && $match['default'][1] > -1 ? $match['default'][0] ?: null : false;
+            $format  = isset($match['format']) ? $match['format'][0] : false;
 
             if ($chunk) {
-                $chunks[] = $chunk;
+                $chunks[] = new StaticChunk($chunk);
             }
 
-            $chunks[] = [$name, $format, $default, $delimiter];
+            $dynamic_chunk = new DynamicChunk($name, $format, $default, $leading_delimiter, $trailing_delimiter);
+
+            $chunks[] = $dynamic_chunk;
 
             $prev = $offset + $length;
         }
@@ -87,32 +103,45 @@ class Parser
         if ($offset > $prev) {
             $chunk = $this->getChunk($string, $prev, $offset, true);
 
-            $chunks[] = $chunk;
+            $chunks[] = new StaticChunk($chunk);
         }
 
         return $chunks;
     }
 
+    /**
+     * Get chunk from route rule string specified with given position
+     *
+     * @param string $string Route rule string
+     * @param int $from Chunk start position
+     * @param int $to Chunk end position
+     * @param bool $final Whether chunk is final in given rule
+     *
+     * @return string
+     */
     public function getChunk($string, $from, $to, $final = false)
     {
         // match static ending
         $chunk = mb_substr($string, $from, $to - $from);
 
         $chunk = $this->lintChunk($chunk, $final);
-        $chunk = preg_quote($chunk, static::REGEX_DELIMITER);
 
         return $chunk;
     }
 
+    /**
+     * Lint chunk string
+     *
+     * @param string $string
+     * @param bool $final
+     *
+     * @return string
+     */
     public function lintChunk($string, $final = false)
     {
         $string = preg_replace('/[\s\v]+/u', '', $string);
 
         $string = preg_replace('/\/+/', '/', $string);
-
-        if ($final) {
-            $string = rtrim($string, '/');
-        }
 
         return $string;
     }

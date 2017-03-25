@@ -6,12 +6,14 @@ namespace Pinepain\SimpleRouting;
 
 // original idea to join regex rules with match group - by Nikita Popov's FastRoute https://github.com/nikic/FastRoute
 // blog post - http://nikic.github.io/2014/02/18/Fast-request-routing-using-regular-expressions.html
+use Pinepain\SimpleRouting\Contracts\CompilerFilterInterface;
+
 class RulesGenerator
 {
     const REGEX_DELIMITER = '~';
 
     /**
-     * @var Compiler
+     * @var CompilerFilterInterface
      */
     private $compiler;
 
@@ -21,10 +23,10 @@ class RulesGenerator
     private $filter;
 
     /**
-     * @param Filter   $filter
+     * @param CompilerFilterInterface $filter
      * @param Compiler $compiler
      */
-    public function __construct($filter, $compiler)
+    public function __construct(CompilerFilterInterface $filter, Compiler $compiler)
     {
         $this->filter   = $filter;
         $this->compiler = $compiler;
@@ -53,6 +55,11 @@ class RulesGenerator
         return $chunks;
     }
 
+    /**
+     * @param Route[] $routes
+     *
+     * @return array
+     */
     public function generateChunk(array $routes)
     {
         $num_groups = 1;
@@ -60,11 +67,10 @@ class RulesGenerator
 
         $routes_map = [];
 
-        foreach ($routes as $route => $handler_and_parsed) {
-            list ($handler, $parsed) = $handler_and_parsed;
+        foreach ($routes as $rule => $route) {
 
-            $parsed   = $this->filter->filter($parsed);
-            $compiled = $this->compiler->compile($parsed);
+            $chunks   = $this->filter->filter($route->chunks);
+            $compiled = $this->compiler->compile($chunks);
 
             /** @var $compiled CompiledRoute */
             $variables = $compiled->getVariables();
@@ -78,7 +84,7 @@ class RulesGenerator
 
             $regexes[] = $compiled->getRegex() . str_repeat('()', $num_groups - $num_variables);
 
-            $routes_map[$num_groups + 1] = [$handler, $variables]; // +1 because of 0-match (whole given string)
+            $routes_map[$num_groups + 1] = [$route->handler, $variables]; // +1 because of 0-match (whole given string)
 
             $num_groups++;
         }

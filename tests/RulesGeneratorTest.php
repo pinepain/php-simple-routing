@@ -3,33 +3,52 @@
 
 namespace Pinepain\SimpleRouting\Tests;
 
-use Mockery as m;
+use PHPUnit\Framework\TestCase;
+use Pinepain\SimpleRouting\Chunks\DynamicChunk;
+use Pinepain\SimpleRouting\CompiledRoute;
+use Pinepain\SimpleRouting\Compiler;
+use Pinepain\SimpleRouting\Contracts\CompilerFilterInterface;
+use Pinepain\SimpleRouting\Route;
 use Pinepain\SimpleRouting\RulesGenerator;
 
-class RulesGeneratorTest extends \PHPUnit_Framework_TestCase
+class RulesGeneratorTest extends TestCase
 {
 
     /**
-     * @covers Pinepain\SimpleRouting\RulesGenerator::getApproxChunkSize
+     * @covers \Pinepain\SimpleRouting\RulesGenerator::getApproxChunkSize
      */
     public function testGetApproxChunksSize()
     {
-        $generator = new RulesGenerator(null, null);
+        /** @var CompilerFilterInterface | \PHPUnit_Framework_MockObject_MockObject $filter */
+        $filter = $this->getMockBuilder(CompilerFilterInterface::class)
+                       ->disableOriginalConstructor()
+                       ->getMock();
+
+
+        /** @var Compiler | \PHPUnit_Framework_MockObject_MockObject $compiler */
+        $compiler = $this->getMockBuilder(Compiler::class)
+                         ->disableOriginalConstructor()
+                         ->getMock();
+
+        $generator = new RulesGenerator($filter, $compiler);
 
         $this->assertEquals(10, $generator->getApproxChunkSize());
     }
 
     /**
-     * @covers Pinepain\SimpleRouting\RulesGenerator::calcChunkSize
+     * @covers \Pinepain\SimpleRouting\RulesGenerator::calcChunkSize
      */
     public function testCalcChunkSize()
     {
-        /** @var \Pinepain\SimpleRouting\RulesGenerator | \PHPUnit_Framework_MockObject_MockObject $generator */
-        $generator = $this->getMock('Pinepain\SimpleRouting\RulesGenerator', ['getApproxChunkSize'], [null, null]);
+        /** @var RulesGenerator | \PHPUnit_Framework_MockObject_MockObject $generator */
+        $generator = $this->getMockBuilder(RulesGenerator::class)
+                          ->disableOriginalConstructor()
+                          ->setMethods(['getApproxChunkSize'])
+                          ->getMock();
 
         $generator->expects($this->any())
-            ->method('getApproxChunkSize')
-            ->willReturnOnConsecutiveCalls(1, 1, 1, 2, 2, 2, 5, 5, 5, 5, 10, 10, 10, 10, 10, 10, 10);
+                  ->method('getApproxChunkSize')
+                  ->willReturnOnConsecutiveCalls(1, 1, 1, 2, 2, 2, 5, 5, 5, 5, 10, 10, 10, 10, 10, 10, 10);
 
         $this->assertEquals(0, $generator->calcChunkSize(0));
         $this->assertEquals(1, $generator->calcChunkSize(1));
@@ -54,21 +73,23 @@ class RulesGeneratorTest extends \PHPUnit_Framework_TestCase
     }
 
     /**
-     * @covers Pinepain\SimpleRouting\RulesGenerator::generate
+     * @covers \Pinepain\SimpleRouting\RulesGenerator::generate
      */
     public function testGenerate()
     {
-        /** @var \Pinepain\SimpleRouting\RulesGenerator | \PHPUnit_Framework_MockObject_MockObject $generator */
-        $generator = $this->getMock('Pinepain\SimpleRouting\RulesGenerator', ['calcChunkSize', 'generateChunk'],
-            [null, null]);
+        /** @var RulesGenerator | \PHPUnit_Framework_MockObject_MockObject $generator */
+        $generator = $this->getMockBuilder(RulesGenerator::class)
+                          ->disableOriginalConstructor()
+                          ->setMethods(['calcChunkSize', 'generateChunk'])
+                          ->getMock();
 
         $generator->expects($this->any())
-            ->method('calcChunkSize')
-            ->willReturn(10);
+                  ->method('calcChunkSize')
+                  ->willReturn(10);
 
         $generator->expects($this->any())
-            ->method('generateChunk')
-            ->willReturn(['generated-regex', ['routes', 'map']]);
+                  ->method('generateChunk')
+                  ->willReturn(['generated-regex', ['routes', 'map']]);
 
 
         $this->assertSame([], $generator->generate([]));
@@ -96,30 +117,37 @@ class RulesGeneratorTest extends \PHPUnit_Framework_TestCase
     }
 
     /**
-     * @covers Pinepain\SimpleRouting\RulesGenerator::__construct
-     * @covers Pinepain\SimpleRouting\RulesGenerator::generateChunk
+     * @covers \Pinepain\SimpleRouting\RulesGenerator::__construct
+     * @covers \Pinepain\SimpleRouting\RulesGenerator::generateChunk
      */
     public function testGenerateChunk()
     {
-        $optional_compiled = m::mock('stdClass');
-        $optional_compiled->shouldReceive('getVariables')->andReturn(['test' => 'optional']);
-        $optional_compiled->shouldReceive('hasOptional')->andReturn(true);
-        $optional_compiled->shouldReceive('getRegex')->andReturn('optional-regex');
+        $optional_compiled  = new CompiledRoute('optional-regex', ['test' => 'optional'], true);
+        $mandatory_compiled = new CompiledRoute('mandatory-regex', ['test' => 'boolean false'], false);
 
-        $mandatory_compiled = m::mock('stdClass');
-        $mandatory_compiled->shouldReceive('getVariables')->andReturn(['test' => 'boolean false']);
-        $mandatory_compiled->shouldReceive('hasOptional')->andReturn(false);
-        $mandatory_compiled->shouldReceive('getRegex')->andReturn('mandatory-regex');
+        /** @var CompilerFilterInterface | \PHPUnit_Framework_MockObject_MockObject $filter */
+        $filter = $this->getMockBuilder(CompilerFilterInterface::class)
+                       ->setMethods(['filter'])
+                       ->disableOriginalConstructor()
+                       ->getMock();
 
+        $filter->expects($this->any())
+               ->method('filter')
+               ->willReturnArgument(0);
 
-        $filter = m::mock('stdClass');
-        $filter->shouldReceive('filter')->with(['parsed optional'])->andReturn(['parsed and filtered optional']);
-        $filter->shouldReceive('filter')->with(['parsed mandatory'])->andReturn(['parsed and filtered mandatory']);
+        /** @var Compiler | \PHPUnit_Framework_MockObject_MockObject $compiler */
+        $compiler = $this->getMockBuilder(Compiler::class)
+                         ->setMethods(['compile'])
+                         ->disableOriginalConstructor()
+                         ->getMock();
 
-
-        $compiler = m::mock('stdClass');
-        $compiler->shouldReceive('compile')->with(['parsed and filtered optional'])->andReturn($optional_compiled);
-        $compiler->shouldReceive('compile')->with(['parsed and filtered mandatory'])->andReturn($mandatory_compiled);
+        $compiler->expects($this->exactly(4))
+                 ->method('compile')
+                 ->willReturnOnConsecutiveCalls(
+                     $mandatory_compiled,
+                     $optional_compiled,
+                     $mandatory_compiled, $optional_compiled
+                 );
 
         $generator = new RulesGenerator($filter, $compiler);
 
@@ -131,12 +159,13 @@ class RulesGeneratorTest extends \PHPUnit_Framework_TestCase
                 2 => [
                     'handler',
                     ['test' => 'boolean false'],
-                ]
-            ]
+                ],
+            ],
         ];
 
-        $this->assertEquals($mandatory_expected,
-            $generator->generateChunk(['route' => ['handler', ['parsed mandatory']]]));
+        $this->assertEquals($mandatory_expected, $generator->generateChunk([
+            'route' => new Route('handler', [new DynamicChunk('parsed mandatory')]),
+        ]));
 
         $optional_expected = [
             "~^(?|optional-regex())$~",
@@ -144,45 +173,38 @@ class RulesGeneratorTest extends \PHPUnit_Framework_TestCase
                 3 => [
                     'handler',
                     ['test' => 'optional'],
-                ]
-            ]
+                ],
+            ],
         ];
 
-        $this->assertEquals($optional_expected,
-            $generator->generateChunk(['route' => ['handler', ['parsed optional']]]));
+        $this->assertEquals($optional_expected, $generator->generateChunk([
+            'route' => new Route('handler', [new DynamicChunk('parsed optional')]),
+        ]));
 
 
         $optional_and_mandatory_expected = [
-            "~^(?|optional-regex()|mandatory-regex()())$~",
+            "~^(?|mandatory-regex|optional-regex())$~",
             [
+                2 => [
+                    'handler',
+                    ['test' => 'boolean false'],
+                ],
                 3 => [
                     'handler',
                     ['test' => 'optional'],
                 ],
-                4 => [
-                    'handler',
-                    ['test' => 'boolean false'],
-                ]
 
-            ]
+            ],
         ];
 
         $this->assertEquals(
             $optional_and_mandatory_expected,
             $generator->generateChunk([
-                    'route-optional'  => ['handler', ['parsed optional']],
-                    'route-mandatory' => ['handler', ['parsed mandatory']],
+                    'route-mandatory' => new Route('handler', [new DynamicChunk('parsed mandatory')]),
+                    'route-optional'  => new Route('handler', [new DynamicChunk('parsed optional')]),
                 ]
             )
         );
 
     }
-
-    protected function tearDown()
-    {
-        parent::tearDown();
-        m::close();
-    }
-
-
 }

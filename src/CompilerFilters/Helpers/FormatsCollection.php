@@ -9,18 +9,18 @@ class FormatsCollection
     public $formats = [];
     private $aliases = [];
 
-    public function __construct(array $preset = array())
+    public function __construct(array $preset = [])
     {
         foreach ($preset as $args) {
             call_user_func_array([$this, 'add'], $args);
         }
     }
 
-    public function add($name, $regex, $alias = [])
+    public function add($name, $regex, $aliases = [])
     {
         $this->formats[$name] = $regex;
 
-        foreach ((array)$alias as $a) {
+        foreach ((array)$aliases as $a) {
             $this->aliases[$a] = $name;
         }
     }

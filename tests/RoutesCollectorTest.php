@@ -3,9 +3,14 @@
 
 namespace Pinepain\SimpleRouting\Tests;
 
+use PHPUnit\Framework\TestCase;
+use Pinepain\SimpleRouting\Chunks\DynamicChunk;
+use Pinepain\SimpleRouting\Chunks\StaticChunk;
+use Pinepain\SimpleRouting\Parser;
+use Pinepain\SimpleRouting\Route;
 use Pinepain\SimpleRouting\RoutesCollector;
 
-class RoutesCollectorTest extends \PHPUnit_Framework_TestCase
+class RoutesCollectorTest extends TestCase
 {
     /**
      * @var RoutesCollector | \PHPUnit_Framework_MockObject_MockObject
@@ -16,7 +21,8 @@ class RoutesCollectorTest extends \PHPUnit_Framework_TestCase
     {
         parent::setUp();
 
-        $parser = $this->getMock('Pinepain\SimpleRouting\Parser');
+        /** @var Parser | \PHPUnit_Framework_MockObject_MockObject $parser */
+        $parser = $this->getMockBuilder(Parser::class)->getMock();
 
         $this->collector = new RoutesCollector($parser);
     }
@@ -28,11 +34,11 @@ class RoutesCollectorTest extends \PHPUnit_Framework_TestCase
     {
         $collector = $this->collector;
 
-        $this->assertTrue($collector->isStatic(['static']));
-        $this->assertFalse($collector->isStatic(['static', ['dynamic']]));
+        $this->assertTrue($collector->isStatic([new StaticChunk('static')]));
+        $this->assertFalse($collector->isStatic([new StaticChunk('static'), new DynamicChunk('dynamic')]));
 
         // We doesn't check whether all parts are static, so
-        $this->assertFalse($collector->isStatic(['static', 'static too']));
+        $this->assertFalse($collector->isStatic([new StaticChunk('static'), new StaticChunk('static too')]));
     }
 
     /**
@@ -43,29 +49,27 @@ class RoutesCollectorTest extends \PHPUnit_Framework_TestCase
      */
     public function testAddStaticRoute()
     {
-        $parser = $this->getMock('Pinepain\SimpleRouting\Parser');
+        /** @var Parser | \PHPUnit_Framework_MockObject_MockObject $parser */
+        $parser = $this->getMockBuilder(Parser::class)->getMock();
 
-        $parser
-            ->expects($this->any())
-            ->method('parse')
-            ->with($this->stringContains('test'))
-            ->willReturnCallback(function ($route) {
-                return ['parsed ' . $route];
-            });
+        $parser->expects($this->any())
+               ->method('parse')
+               ->with($this->stringContains('test'))
+               ->willReturnCallback(function ($route) {
+                   return [new StaticChunk('parsed ' . $route)];
+               });
 
-        //$this->collector = $this->getMock('Pinepain\SimpleRouting\RoutesCollector', array(), [$parser]); //new RoutesCollector($parser);
         $collector = new RoutesCollector($parser);
 
-
-        $this->assertEquals(['parsed test route 1'], $collector->add('test route 1', 'test handler 1'));
-        $this->assertEquals(['parsed test route 2'], $collector->add('test route 2', 'test handler 2'));
-        $this->assertEquals(['parsed test route 3'], $collector->add('test route 3', 'test handler 3'));
+        $this->assertEquals([new StaticChunk('parsed test route 1')], $collector->add('test route 1', 'test handler 1'));
+        $this->assertEquals([new StaticChunk('parsed test route 2')], $collector->add('test route 2', 'test handler 2'));
+        $this->assertEquals([new StaticChunk('parsed test route 3')], $collector->add('test route 3', 'test handler 3'));
 
 
         $static_routes = [
-            'test route 1' => ['test handler 1', ['parsed test route 1']],
-            'test route 2' => ['test handler 2', ['parsed test route 2']],
-            'test route 3' => ['test handler 3', ['parsed test route 3']],
+            'test route 1' => new Route('test handler 1', [new StaticChunk('parsed test route 1')]),
+            'test route 2' => new Route('test handler 2', [new StaticChunk('parsed test route 2')]),
+            'test route 3' => new Route('test handler 3', [new StaticChunk('parsed test route 3')]),
         ];
 
         $this->assertEquals($static_routes, $collector->getStaticRoutes());
@@ -81,7 +85,8 @@ class RoutesCollectorTest extends \PHPUnit_Framework_TestCase
      */
     public function testAddDynamicRoute()
     {
-        $parser = $this->getMock('Pinepain\SimpleRouting\Parser');
+        /** @var Parser | \PHPUnit_Framework_MockObject_MockObject $parser */
+        $parser = $this->getMockBuilder(Parser::class)->getMock();
 
         $parser
             ->expects($this->atLeast(1))
@@ -97,12 +102,14 @@ class RoutesCollectorTest extends \PHPUnit_Framework_TestCase
         $this->assertEquals(['dynamic', 'test route 1'], $collector->add('test route 1', 'test handler 1'));
         $this->assertEquals(['dynamic', 'test route 2'], $collector->add('test route 2', 'test handler 2'));
         $this->assertEquals(['dynamic', 'test route 3'], $collector->add('test route 3', 'test handler 3'));
+        $this->assertEquals(['dynamic', '/test-route-4'], $collector->add('/test-route-4', 'test handler 4'));
 
 
         $dynamic_routes = [
-            'test route 1' => ['test handler 1', ['dynamic', 'test route 1']],
-            'test route 2' => ['test handler 2', ['dynamic', 'test route 2']],
-            'test route 3' => ['test handler 3', ['dynamic', 'test route 3']],
+            'test route 1'  => new Route('test handler 1', ['dynamic', 'test route 1']),
+            'test route 2'  => new Route('test handler 2', ['dynamic', 'test route 2']),
+            'test route 3'  => new Route('test handler 3', ['dynamic', 'test route 3']),
+            '/test-route-4' => new Route('test handler 4', ['dynamic', '/test-route-4']),
         ];
 
         $this->assertEquals([], $collector->getStaticRoutes());
@@ -110,19 +117,20 @@ class RoutesCollectorTest extends \PHPUnit_Framework_TestCase
     }
 
     /**
-     * @covers \Pinepain\SimpleRouting\RoutesCollector::add
+     * @covers                   \Pinepain\SimpleRouting\RoutesCollector::add
      *
      * @expectedException \Pinepain\SimpleRouting\Exception
      * @expectedExceptionMessage Route 'test' already registered
      */
     public function testAddDuplicateFailure()
     {
-        $parser = $this->getMock('Pinepain\SimpleRouting\Parser');
+        /** @var Parser | \PHPUnit_Framework_MockObject_MockObject $parser */
+        $parser = $this->getMockBuilder(Parser::class)->getMock();
 
         $parser
             ->expects($this->once())
             ->method('parse')
-            ->willReturn(array('parsed as static'));
+            ->willReturn([new StaticChunk('parsed as static')]);
 
         $collector = new RoutesCollector($parser);
 

@@ -1,15 +1,10 @@
 <?php
 $loader = require __DIR__ . "/vendor/autoload.php";
 
-// Composer requirement:
-//      "aura/router":"2.0.*@dev",
-//      "symfony/routing": "3.0.*@dev",
-//      "nikic/fast-route": "dev-master"
-
-
-// composer require "aura/router":"2.0.*@dev"
+// composer require "aura/router":"3.0.*@dev"
+// composer require "zendframework/zend-diactoros"
 // composer require "symfony/routing":"3.0.*@dev"
-// composer require "nikic/fast-route":"*@dev"
+// composer require "nikic/fast-route":"1.0.*@dev"
 
 function dd()
 {
@@ -29,7 +24,7 @@ function str_random($length = 16)
         throw new RuntimeException('Unable to generate random string.');
     }
 
-    return substr(str_replace(array('/', '+', '='), '', base64_encode($bytes)), 0, $length);
+    return substr(str_replace(['/', '+', '='], '', base64_encode($bytes)), 0, $length);
 }
 
 function generateRoute($parameters = 1, $optional = 0, $with_default = false, $missed = 0)
@@ -38,7 +33,7 @@ function generateRoute($parameters = 1, $optional = 0, $with_default = false, $m
 
 
     while ($parameters - $optional > 0) {
-        $route .= '/{x_' . str_random(8) . '}';
+        $route   .= '/{x_' . str_random(8) . '}';
         $example .= '/' . str_random(8);
         $parameters--;
     }
@@ -55,7 +50,7 @@ function generateRoute($parameters = 1, $optional = 0, $with_default = false, $m
         $optional--;
     }
 
-    return array($route, $example);
+    return [$route, $example];
 }
 
 function simple_bench($nRoutes, $nMatches)
@@ -64,18 +59,23 @@ function simple_bench($nRoutes, $nMatches)
     $collector = new \Pinepain\SimpleRouting\RoutesCollector($parser);
 
     $compiler  = new \Pinepain\SimpleRouting\Compiler();
-    $filter = new \Pinepain\SimpleRouting\Filter([new \Pinepain\SimpleRouting\CompilerFilters\Formats(new \Pinepain\SimpleRouting\CompilerFilters\Helpers\FormatsCollection([['default', '[^/]+']]))]);
+    $filter    = new \Pinepain\SimpleRouting\Filter(
+        [
+            new \Pinepain\SimpleRouting\CompilerFilters\Formats(
+                new \Pinepain\SimpleRouting\CompilerFilters\Helpers\FormatsCollection([['default', '[^/]+']])),
+        ]
+    );
     $generator = new \Pinepain\SimpleRouting\RulesGenerator($filter, $compiler);
 
     $routes   = [];
     $examples = [];
 
-    echo "\n-- Simple Router ---\n\n";
+    echo "Simple Router:", PHP_EOL;
 
     for ($i = 0, $str = 'a'; $i < $nRoutes; $i++, $str++) {
         $route = generateRoute(2);
         list ($route, $example) = $route;
-        $routes[] = $route;
+        $routes[]   = $route;
         $examples[] = $example;
         $collector->add($route, 'handler' . $i);
         $lastStr = $example;
@@ -87,42 +87,52 @@ function simple_bench($nRoutes, $nMatches)
     $dispatcher     = new \Pinepain\SimpleRouting\Matcher($collector->getStaticRoutes(), $generated_data);
 
     // first route
+    $res       = null;
     $startTime = microtime(true);
     for ($i = 0; $i < $nMatches; $i++) {
-        $parameters = $dispatcher->match($examples[0]);
-        //dd($parameters, $routes[0], $examples[0]);
+        $res = $dispatcher->match($examples[0]);
+        if ($res) {
+            break;
+        }
     }
-    printf("Simple Router router first route: %f\n", microtime(true) - $startTime);
+    printf(str_pad('first', 7, ' ', STR_PAD_LEFT) . " %f\n", microtime(true) - $startTime);
 
-    // midlle route
-    $middle = min(count($routes), ceil(count($routes)/2));
-
+    // middle route
+    $middle    = min(count($routes), ceil(count($routes) / 2));
+    $res       = null;
     $startTime = microtime(true);
     for ($i = 0; $i < $nMatches; $i++) {
-        $parameters = $dispatcher->match($examples[$middle]);
-        //dd($parameters, $routes[$middle], $examples[$middle]);
+        $res = $dispatcher->match($examples[$middle]);
+        if ($res) {
+            break;
+        }
     }
-    printf("Simple Router router middle route: %f\n", microtime(true) - $startTime);
+    printf(str_pad('middle', 7, ' ', STR_PAD_LEFT) . " %f\n", microtime(true) - $startTime);
 
 
     // last route
+    $res       = null;
     $startTime = microtime(true);
     for ($i = 0; $i < $nMatches; $i++) {
-        $parameters = $dispatcher->match($lastStr);
-
+        $res = $dispatcher->match($lastStr);
+        if ($res) {
+            break;
+        }
     }
-    printf("Simple Router last route: %f\n", microtime(true) - $startTime);
-    //var_dump($res);
+    printf(str_pad('last', 7, ' ', STR_PAD_LEFT) . " %f\n", microtime(true) - $startTime);
 
     // unknown route
+    $res       = null;
     $startTime = microtime(true);
     for ($i = 0; $i < $nMatches; $i++) {
-        $parameters = $dispatcher->match('/foobar/bar');
+        $res = $dispatcher->match('/foobar/bar');
+        if ($res) {
+            break;
+        }
     }
-    printf("Simple Router router unknown route: %f\n", microtime(true) - $startTime);
-    //var_dump($res);
+    printf(str_pad('unknown', 7, ' ', STR_PAD_LEFT) . " %f\n", microtime(true) - $startTime);
 
-    echo "\n-----\n\n";
+    echo PHP_EOL;
 }
 
 function fastroutebench($nRoutes, $nMatches)
@@ -131,13 +141,13 @@ function fastroutebench($nRoutes, $nMatches)
 
     $routes   = [];
     $examples = [];
-    echo "\n-- Fast Router ---\n\n";
+    echo "Fast Router:", PHP_EOL;
 
     $router = FastRoute\simpleDispatcher(function ($router) use ($nRoutes, &$lastStr, &$routes, &$examples) {
         for ($i = 0; $i < $nRoutes; $i++) {
             $route = generateRoute(2);
             list ($route, $example) = $route;
-            $routes[] = $route;
+            $routes[]   = $route;
             $examples[] = $example;
             $router->addRoute('GET', $route, 'handler' . $i);
             $lastStr = $example;
@@ -145,136 +155,230 @@ function fastroutebench($nRoutes, $nMatches)
     }, $options);
 
     // first route
+    $res       = null;
     $startTime = microtime(true);
     for ($i = 0; $i < $nMatches; $i++) {
-        $parameters = $router->dispatch('GET', $examples[0]);
-        //dd($parameters, $routes[0], $examples[0]);
-    }
-    printf("FastRoute first route: %f\n", microtime(true) - $startTime);
+        $res = $router->dispatch('GET', $examples[0]);
+        if ($res[0] == $router::FOUND) {
+            break;
+        }
 
-    $middle = min(count($routes), ceil(count($routes)/2));
+    }
+    printf(str_pad('first', 7, ' ', STR_PAD_LEFT) . " %f\n", microtime(true) - $startTime);
+
+    $middle = min(count($routes), ceil(count($routes) / 2));
 
     // middle route
+    $res       = null;
     $startTime = microtime(true);
     for ($i = 0; $i < $nMatches; $i++) {
-        $parameters = $router->dispatch('GET', $examples[$middle]);
-        //dd($parameters, $routes[$middle], $examples[$middle]);
+        $res = $router->dispatch('GET', $examples[$middle]);
+        if ($res[0] == $router::FOUND) {
+            break;
+        }
     }
-    printf("FastRoute router middle route: %f\n", microtime(true) - $startTime);
+    printf(str_pad('middle', 7, ' ', STR_PAD_LEFT) . " %f\n", microtime(true) - $startTime);
 
 
     // last route
+    $res       = null;
     $startTime = microtime(true);
     for ($i = 0; $i < $nMatches; $i++) {
         $res = $router->dispatch('GET', $lastStr);
+        if ($res[0] == $router::FOUND) {
+            break;
+        }
     }
-    printf("FastRoute last route: %f\n", microtime(true) - $startTime);
-    //var_dump($res);
+    printf(str_pad('last', 7, ' ', STR_PAD_LEFT) . " %f\n", microtime(true) - $startTime);
 
     // unknown route
+    $res       = null;
     $startTime = microtime(true);
     for ($i = 0; $i < $nMatches; $i++) {
         $res = $router->dispatch('GET', '/foobar/bar');
+        if ($res[0] == $router::FOUND) {
+            break;
+        }
     }
-    printf("FastRoute unknown route: %f\n", microtime(true) - $startTime);
-    //var_dump($res);
+    printf(str_pad('unknown', 7, ' ', STR_PAD_LEFT) . " %f\n", microtime(true) - $startTime);
 
-    echo "\n-----\n\n";
+    echo PHP_EOL;
 }
 
 function symfonybench($nRoutes, $nMatches)
 {
-    echo "\n-- Symfony Router ---\n\n";
-    $routes = new Symfony\Component\Routing\RouteCollection();
+    echo "Symfony Router:", PHP_EOL;
+    $symfony_routes = new Symfony\Component\Routing\RouteCollection();
 
-    for ($i = 0, $str = 'a'; $i < $nRoutes; $i++, $str++) {
-        $route = new Symfony\Component\Routing\Route('/' . $str . '/{arg}', array('controller' => 'MyController'));
-        $routes->add('handler' . $i, $route);
-        $lastStr = $str;
+    $routes   = [];
+    $examples = [];
+
+    for ($i = 0; $i < $nRoutes; $i++) {
+        $route = generateRoute(2);
+        list ($route, $example) = $route;
+        $routes[]   = $route;
+        $examples[] = $example;
+
+        $route = new Symfony\Component\Routing\Route($route, ['controller' => 'MyController']);
+        $symfony_routes->add('handler' . $i, $route);
+        $lastStr = $example;
     }
 
-    $context = new Symfony\Component\Routing\RequestContext('/a/foo');
-    $matcher = new Symfony\Component\Routing\Matcher\UrlMatcher($routes, $context);
+    $context = new Symfony\Component\Routing\RequestContext($examples[0]);
+    $matcher = new Symfony\Component\Routing\Matcher\UrlMatcher($symfony_routes, $context);
+
     // first route
+    $res       = null;
     $startTime = microtime(true);
     for ($i = 0; $i < $nMatches; $i++) {
-        $parameters = $matcher->match('/a/foo');
-    }
-    printf("Symfony router first route: %f\n", microtime(true) - $startTime);
-
-    $context = new Symfony\Component\Routing\RequestContext('/' . $lastStr . '/foo');
-    $matcher = new Symfony\Component\Routing\Matcher\UrlMatcher($routes, $context);
-    // last route
-    $startTime = microtime(true);
-    for ($i = 0; $i < $nMatches; $i++) {
-        $parameters = $matcher->match('/' . $lastStr . '/foo');
-    }
-    printf("Symfony last route: %f\n", microtime(true) - $startTime);
-    //var_dump($res);
-
-    // unknown route
-    $startTime = microtime(true);
-    for ($i = 0; $i < $nMatches; $i++) {
-        try {
-            $parameters = $matcher->match('/foobar/bar');
-        } catch (Exception $e) {
+        $res = $matcher->match($examples[0]);
+        if ($res) {
+            break;
         }
     }
-    printf("Symfony router unknown route: %f\n", microtime(true) - $startTime);
-    //var_dump($res);
+    printf(str_pad('first', 7, ' ', STR_PAD_LEFT) . " : %f\n", microtime(true) - $startTime);
 
-    echo "\n-----\n\n";
+    $middle = min(count($routes), ceil(count($routes) / 2));
+
+    $context = new Symfony\Component\Routing\RequestContext($examples[$middle]);
+    $matcher = new Symfony\Component\Routing\Matcher\UrlMatcher($symfony_routes, $context);
+
+    // middle route
+    $res       = null;
+    $startTime = microtime(true);
+    for ($i = 0; $i < $nMatches; $i++) {
+        $res = $matcher->match($examples[$middle]);
+        if ($res) {
+            break;
+        }
+    }
+    printf(str_pad('middle', 7, ' ', STR_PAD_LEFT) . " : %f\n", microtime(true) - $startTime);
+
+
+    $context = new Symfony\Component\Routing\RequestContext($lastStr);
+    $matcher = new Symfony\Component\Routing\Matcher\UrlMatcher($symfony_routes, $context);
+
+    // last route
+    $res       = null;
+    $startTime = microtime(true);
+    for ($i = 0; $i < $nMatches; $i++) {
+        $res = $matcher->match($lastStr);
+        if ($res) {
+            break;
+        }
+    }
+    printf(str_pad('last', 7, ' ', STR_PAD_LEFT) . " : %f\n", microtime(true) - $startTime);
+
+    // NOTE: too slow
+    //// unknown route
+    //$res = null;
+    //$startTime = microtime(true);
+    //for ($i = 0; $i < $nMatches; $i++) {
+    //    try {
+    //        $res = $matcher->match('/foobar/bar');
+    //    } catch (Exception $e) {
+    //    }
+    //
+    //    if ($res) {
+    //        break;
+    //    }
+    //
+    //}
+    //printf(str_pad('unknown', 7, ' ', STR_PAD_LEFT), " : %f\n", microtime(true) - $startTime);
+
+    echo PHP_EOL;
 }
 
 function aurabench($nRoutes, $nMatches)
 {
-    echo "---- aura ---- \n";
-    // v1
-    // $router = new Map(new DefinitionFactory, new RouteFactory);
-    // v2
-    $router = new Aura\Router\Router(
-        new Aura\Router\RouteCollection(new \Aura\Router\RouteFactory),
-        new Aura\Router\Generator
+    echo "Aura.Router:", PHP_EOL;
+    $router_container = new Aura\Router\RouterContainer();
+    $map              = $router_container->getMap();
+
+    $routes   = [];
+    $examples = [];
+
+    for ($i = 0; $i < $nRoutes; $i++) {
+        $route = generateRoute(2);
+        list ($route, $example) = $route;
+        $routes[]   = $route;
+        $examples[] = $example;
+
+        $map->get('handler' . $i, $route);
+        $lastStr = $example;
+    }
+
+    $middle = min(count($routes), ceil(count($routes) / 2));
+
+    $request = Zend\Diactoros\ServerRequestFactory::fromGlobals(
+        $_SERVER,
+        $_GET,
+        $_POST,
+        $_COOKIE,
+        $_FILES
     );
 
-    for ($i = 0, $str = 'a'; $i < $nRoutes; $i++, $str++) {
-        // v1
-        // $router->add('handler' . $i, '/' . $str . '/{:arg}');
-        // v2
-        $router->add('handler' . $i, '/' . $str . '/{arg}');
-        $lastStr = $str;
-    }
+    $request = $request->withMethod('GET');
+
+    $matcher = $router_container->getMatcher();
 
     // first route
+    $res       = null;
     $startTime = microtime(true);
     for ($i = 0; $i < $nMatches; $i++) {
-        $res = $router->match('/a/foo', $_SERVER);
+        $r   = $request->withUri($request->getUri()->withPath($examples[0]));
+        $res = $matcher->match($r);
+        if ($res) {
+            break;
+        }
     }
-    printf("Aura router first route: %f\n", microtime(true) - $startTime);
+    printf(str_pad('first', 7, ' ', STR_PAD_LEFT) . " %f\n", microtime(true) - $startTime);
+
+    // middle route
+    $res       = null;
+    $startTime = microtime(true);
+    for ($i = 0; $i < $nMatches; $i++) {
+        $r   = $request->withUri($request->getUri()->withPath($examples[$middle]));
+        $res = $matcher->match($r);
+        if ($res) {
+            break;
+        }
+    }
+    printf(str_pad('middle', 7, ' ', STR_PAD_LEFT) . " %f\n", microtime(true) - $startTime);
 
     // last route
+    $res       = null;
     $startTime = microtime(true);
     for ($i = 0; $i < $nMatches; $i++) {
-        $res = $router->match('/' . $lastStr . '/foo', $_SERVER);
+        $r   = $request->withUri($request->getUri()->withPath($lastStr));
+        $res = $matcher->match($r);
+        if ($res) {
+            break;
+        }
     }
-    printf("Aura router last route: %f\n", microtime(true) - $startTime);
+    printf(str_pad('last', 7, ' ', STR_PAD_LEFT) . " %f\n", microtime(true) - $startTime);
 
-    // unknown route
-    $startTime = microtime(true);
-    for ($i = 0; $i < $nMatches; $i++) {
-        $res = $router->match('/foobar/bar', $_SERVER);
-    }
-    printf("Aura router unknown route: %f\n", microtime(true) - $startTime);
-    //var_dump($res);
+    // NOTE: it's very slow, so we simply disable it
+    //// unknown route
+    //$res = null;
+    //$startTime = microtime(true);
+    //for ($i = 0; $i < $nMatches; $i++) {
+    //    $r = $request->withUri($request->getUri()->withPath('/foobar/bar'));
+    //    $res = $matcher->match($r);
+    //    if ($res) {
+    //        break;
+    //    }
+    //}
+    //printf(str_pad('unknown', 7, ' ', STR_PAD_LEFT) . " %f\n", microtime(true) - $startTime);
 
-    echo "\n-----\n\n";
+    echo PHP_EOL;
 }
 
 $nRoutes  = 100;
-$nMatches = 10000;
+$nMatches = 100000;
 echo "No of routes is {$nRoutes} and matches {$nMatches} \n\n";
 simple_bench($nRoutes, $nMatches);
 fastroutebench($nRoutes, $nMatches);
 // that stuff is a bit slow, so not necessary to compare at all, but if you want - go on
-//symfonybench($nRoutes, $nMatches);
-//aurabench($nRoutes, $nMatches);
+symfonybench($nRoutes, $nMatches);
+aurabench($nRoutes, $nMatches);
