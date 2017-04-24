@@ -4,10 +4,12 @@
 namespace Pinepain\SimpleRouting\Tests;
 
 use PHPUnit\Framework\TestCase;
+use Pinepain\SimpleRouting\Chunk;
 use Pinepain\SimpleRouting\Chunks\DynamicChunk;
 use Pinepain\SimpleRouting\CompiledRoute;
 use Pinepain\SimpleRouting\Compiler;
 use Pinepain\SimpleRouting\Contracts\CompilerFilterInterface;
+use Pinepain\SimpleRouting\Crumb;
 use Pinepain\SimpleRouting\Route;
 use Pinepain\SimpleRouting\RulesGenerator;
 
@@ -89,31 +91,15 @@ class RulesGeneratorTest extends TestCase
 
         $generator->expects($this->any())
                   ->method('generateChunk')
-                  ->willReturn(['generated-regex', ['routes', 'map']]);
+                  ->willReturn($chunk = new Chunk('generated-regex', [new Crumb('routes', ['map'])]));
 
 
         $this->assertSame([], $generator->generate([]));
-        $this->assertSame([['generated-regex', ['routes', 'map']]],
-            $generator->generate(array_fill(0, 5, null)));
-
-        $this->assertSame([['generated-regex', ['routes', 'map']]],
-            $generator->generate(array_fill(0, 10, null)));
-
-        $this->assertSame([
-            ['generated-regex', ['routes', 'map']],
-            ['generated-regex', ['routes', 'map']],
-        ], $generator->generate(array_fill(0, 11, null)));
-
-        $this->assertSame([
-            ['generated-regex', ['routes', 'map']],
-            ['generated-regex', ['routes', 'map']],
-        ], $generator->generate(array_fill(0, 20, null)));
-
-        $this->assertSame([
-            ['generated-regex', ['routes', 'map']],
-            ['generated-regex', ['routes', 'map']],
-            ['generated-regex', ['routes', 'map']],
-        ], $generator->generate(array_fill(0, 21, null)));
+        $this->assertEquals([$chunk], $generator->generate(array_fill(0, 5, null)));
+        $this->assertEquals([$chunk], $generator->generate(array_fill(0, 10, null)));
+        $this->assertEquals([$chunk, $chunk], $generator->generate(array_fill(0, 11, null)));
+        $this->assertEquals([$chunk, $chunk], $generator->generate(array_fill(0, 20, null)));
+        $this->assertEquals([$chunk, $chunk, $chunk], $generator->generate(array_fill(0, 21, null)));
     }
 
     /**
@@ -153,49 +139,37 @@ class RulesGeneratorTest extends TestCase
 
         $this->assertEquals([], $generator->generate([]));
 
-        $mandatory_expected = [
+        $mandatory_expected = new Chunk(
             "~^(?|mandatory-regex)$~",
             [
-                2 => [
-                    'handler',
-                    ['test' => 'boolean false'],
-                ],
-            ],
-        ];
+                2 => new Crumb('handler', ['test' => 'boolean false']),
+            ]
+        );
 
         $this->assertEquals($mandatory_expected, $generator->generateChunk([
             'route' => new Route('handler', [new DynamicChunk('parsed mandatory')]),
         ]));
 
-        $optional_expected = [
+        $optional_expected = new Chunk(
             "~^(?|optional-regex())$~",
             [
-                3 => [
-                    'handler',
-                    ['test' => 'optional'],
-                ],
-            ],
-        ];
+                3 => new Crumb('handler', ['test' => 'optional']),
+            ]
+        );
 
         $this->assertEquals($optional_expected, $generator->generateChunk([
             'route' => new Route('handler', [new DynamicChunk('parsed optional')]),
         ]));
 
 
-        $optional_and_mandatory_expected = [
+        $optional_and_mandatory_expected = new Chunk(
             "~^(?|mandatory-regex|optional-regex())$~",
             [
-                2 => [
-                    'handler',
-                    ['test' => 'boolean false'],
-                ],
-                3 => [
-                    'handler',
-                    ['test' => 'optional'],
-                ],
+                2 => new Crumb('handler', ['test' => 'boolean false']),
+                3 => new Crumb('handler', ['test' => 'optional']),
 
-            ],
-        ];
+            ]
+        );
 
         $this->assertEquals(
             $optional_and_mandatory_expected,

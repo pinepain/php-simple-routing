@@ -4,7 +4,7 @@
 namespace Pinepain\SimpleRouting;
 
 
-class Match
+class Crumb
 {
     /**
      * @var string
@@ -19,7 +19,7 @@ class Match
      * @param string $handler
      * @param array  $variables
      */
-    public function __construct(string $handler, array $variables = [])
+    public function __construct(string $handler, array $variables)
     {
         $this->handler   = $handler;
         $this->variables = $variables;

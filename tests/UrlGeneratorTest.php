@@ -54,13 +54,13 @@ class UrlGeneratorTest extends TestCase
         $collector->expects($this->exactly(1))
                   ->method('getStaticRoutes')
                   ->willReturn([
-                      '/static/path' => new Route('static handler', $static_chunks = [new StaticChunk('/static/path')]),
+                      '/static/path' => $static_route = new Route('static handler', [new StaticChunk('/static/path')]),
                   ]);
 
         $collector->expects($this->exactly(1))
                   ->method('getDynamicRoutes')
                   ->willReturn([
-                      '/dynamic/{path}' => new Route('dynamic handler', $dynamic_chunks = [
+                      '/dynamic/{path}' => $dynamic_route = new Route('dynamic handler', [
                           new StaticChunk('/dynamic/'),
                           new DynamicChunk('path'),
                       ]),
@@ -71,8 +71,8 @@ class UrlGeneratorTest extends TestCase
                   ->method('setMap')
                   ->with(
                       [
-                          'static handler' => $static_chunks,
-                          'dynamic handler' => $dynamic_chunks,
+                          'static handler'  => $static_route,
+                          'dynamic handler' => $dynamic_route,
                       ]
                   );
 
@@ -149,18 +149,16 @@ class UrlGeneratorTest extends TestCase
                           ->disableOriginalConstructor()
                           ->getMock();
 
-        $generator->expects($this->exactly(2))
+        $generator->expects($this->any())
                   ->method('getMap')
-                  ->willReturn(['test' => [new StaticChunk('/test')]]);
+                  ->willReturn(['test' => new Route('test', [new StaticChunk('/test')])]);
 
         $generator->expects($this->once())
                   ->method('handleStaticPart')
                   ->with('/test')
                   ->willReturn('/test-handled');
 
-        $this->assertNull($generator->generate('nonexistent'));
         $this->assertEquals('/test-handled', $generator->generate('test'));
-
 
         /** @var UrlGenerator | \PHPUnit_Framework_MockObject_MockObject $generator */
         $generator = $this->getMockBuilder(UrlGenerator::class)
@@ -171,10 +169,13 @@ class UrlGeneratorTest extends TestCase
         $generator->expects($this->any())
                   ->method('getMap')
                   ->willReturn([
-                      'test' => [
-                          new StaticChunk('/test'),
-                          new DynamicChunk('name', 'format', 'default-value', '/delimiter/'),
-                      ],
+                      'test' => new Route(
+                          'test',
+                          [
+                              new StaticChunk('/test'),
+                              new DynamicChunk('name', 'format', 'default-value', '/delimiter/'),
+                          ]
+                      ),
                   ]);
 
         $generator->expects($this->any())
@@ -222,6 +223,21 @@ class UrlGeneratorTest extends TestCase
     }
 
     /**
+     * @expectedException \Pinepain\SimpleRouting\NotFoundException
+     * @expectedExceptionMessage Handler 'nonexistent' mapping does not exist
+     */
+    public function testGenerateMissed()
+    {
+        /** @var UrlGenerator | \PHPUnit_Framework_MockObject_MockObject $generator */
+        $generator = $this->getMockBuilder(UrlGenerator::class)
+                          ->setMethods(['getMap', 'handleStaticPart', 'handleParameter'])
+                          ->disableOriginalConstructor()
+                          ->getMock();
+
+        $this->assertNull($generator->generate('nonexistent'));
+    }
+
+    /**
      * @covers                   \Pinepain\SimpleRouting\UrlGenerator::generate
      *
      * @expectedException \Pinepain\SimpleRouting\Exception
@@ -238,10 +254,13 @@ class UrlGeneratorTest extends TestCase
         $generator->expects($this->any())
                   ->method('getMap')
                   ->willReturn([
-                      'test' => [
-                          new StaticChunk('/test'),
-                          new DynamicChunk('name', 'format', false, '/delimiter/'),
-                      ],
+                      'test' => new Route(
+                          'test',
+                          [
+                              new StaticChunk('/test'),
+                              new DynamicChunk('name', 'format', false, '/delimiter/'),
+                          ]
+                      ),
                   ]);
 
         $generator->generate('test');
@@ -261,13 +280,15 @@ class UrlGeneratorTest extends TestCase
                           ->disableOriginalConstructor()
                           ->getMock();
 
-        $generator->expects($this->once())
+        $generator->expects($this->any())
                   ->method('getMap')
                   ->willReturn([
-                      'test' => [
-                          new StaticChunk('/test'),
-                          new DynamicChunk('name', 'format', false, '/delimiter/'),
-                      ],
+                      'test' => new Route(
+                          'test',
+                          [
+                              new StaticChunk('/test'),
+                              new DynamicChunk('name', 'format', false, '/delimiter/'),
+                          ]),
                   ]);
 
         $generator->expects($this->once())
@@ -292,13 +313,16 @@ class UrlGeneratorTest extends TestCase
                           ->disableOriginalConstructor()
                           ->getMock();
 
-        $generator->expects($this->once())
+        $generator->expects($this->any())
                   ->method('getMap')
                   ->willReturn([
-                      'test' => [
-                          new StaticChunk('/test'),
-                          new DynamicChunk('name', 'format', '', '/delimiter/'),
-                      ],
+                      'test' => new Route(
+                          'test',
+                          [
+                              new StaticChunk('/test'),
+                              new DynamicChunk('name', 'format', '', '/delimiter/'),
+                          ]
+                      ),
                   ]);
 
         $generator->expects($this->once())

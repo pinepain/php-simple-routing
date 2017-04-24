@@ -4,6 +4,7 @@
 namespace Pinepain\SimpleRouting;
 
 
-class Exception extends \Exception
+class NotFoundException extends Exception
 {
+
 }

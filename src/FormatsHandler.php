@@ -1,4 +1,4 @@
-<?php
+<?php declare(strict_types=1);
 
 
 namespace Pinepain\SimpleRouting;
@@ -20,7 +20,13 @@ class FormatsHandler
         $this->handlers = $handlers;
     }
 
-    public function handle($format, $value)
+    /**
+     * @param string $format
+     * @param string $value
+     *
+     * @return string
+     */
+    public function handle(string $format, $value): string
     {
         if (isset($this->handlers[$format])) {
             return $this->handlers[$format]->handle($value);
@@ -29,7 +35,12 @@ class FormatsHandler
         return $this->handleDefault($value);
     }
 
-    public function handleDefault($value)
+    /**
+     * @param string $value
+     *
+     * @return string
+     */
+    public function handleDefault(string $value): string
     {
         return rawurlencode($value);
     }

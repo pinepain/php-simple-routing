@@ -1,4 +1,4 @@
-<?php
+<?php declare(strict_types=1);
 
 
 namespace Pinepain\SimpleRouting;
@@ -11,7 +11,7 @@ use Pinepain\SimpleRouting\Chunks\StaticChunk;
 class UrlGenerator
 {
     /**
-     * @var AbstractChunk[][]
+     * @var Route[]
      */
     private $map = [];
 
@@ -25,27 +25,40 @@ class UrlGenerator
         $this->types_handler = $types_handler;
     }
 
+    /**
+     * @param RoutesCollector $collector
+     *
+     * @return void
+     */
     public function setMapFromRoutesCollector(RoutesCollector $collector)
     {
         $map = [];
 
         foreach ($collector->getDynamicRoutes() as $route) {
-            $map[$route->handler] = $route->chunks;
+            $map[$route->handler] = $route;
         }
 
         foreach ($collector->getStaticRoutes() as $route) {
-            $map[$route->handler] = $route->chunks;
+            $map[$route->handler] = $route;
         }
 
         $this->setMap($map);
     }
 
+    /**
+     * @param Route[] $map
+     *
+     * @return void
+     */
     public function setMap(array $map)
     {
         $this->map = $map;
     }
 
-    public function getMap()
+    /**
+     * @return Route[]
+     */
+    public function getMap(): array
     {
         return $this->map;
     }
@@ -54,33 +67,34 @@ class UrlGenerator
      * Generate URL
      *
      * @param string $handler Route definition identifier
-     * @param array $params Route parameter values
-     * @param bool $full Whether missed optional parameters should be included in built URL
+     * @param array  $params  Route parameter values
+     * @param bool   $full    Whether missed optional parameters should be included in built URL
      *
      * @return string Generated URL
      * @throws Exception
+     * @throws NotFoundException
      */
-    public function generate($handler, array $params = [], $full = false)
+    public function generate(string $handler, array $params = [], $full = false)
     {
         $map = $this->getMap();
 
         if (!isset($map[$handler])) {
-            return null;
+            throw new NotFoundException("Handler '{$handler}' mapping does not exist");
         }
 
-        $parsed = $map[$handler];
+        $route = $map[$handler];
 
-        $route = '';
+        $url = '';
 
-        foreach ($parsed as $chunk) {
+        foreach ($route->chunks as $chunk) {
             if ($chunk->isStatic()) {
                 /** @var StaticChunk $chunk */
-                $route .= $this->handleStaticPart($chunk->static);
+                $url .= $this->handleStaticPart($chunk->static);
 
                 continue;
             }
-            /** @var DynamicChunk $chunk */
 
+            /** @var DynamicChunk $chunk */
 
             if ($chunk->default === false && !isset($params[$chunk->name])) {
                 throw new Exception("Required parameter '{$chunk->name}' value missed");
@@ -100,22 +114,26 @@ class UrlGenerator
                 }
             }
 
-            // TODO: handle leading and trailing delimiter
             if ($chunk->leading_delimiter) {
-                $route .= $this->handleStaticPart($chunk->leading_delimiter);
+                $url .= $this->handleStaticPart($chunk->leading_delimiter);
             }
 
-            $route .= $this->handleParameter($chunk->format, $value, $chunk->name);
+            $url .= $this->handleParameter($chunk->format, $value, $chunk->name);
 
             if ($chunk->trailing_delimiter) {
-                $route .= $this->handleStaticPart($chunk->trailing_delimiter);
+                $url .= $this->handleStaticPart($chunk->trailing_delimiter);
             }
         }
 
-        return $route;
+        return $url;
     }
 
-    public function handleStaticPart($chunk)
+    /**
+     * @param string $chunk
+     *
+     * @return string
+     */
+    public function handleStaticPart(string $chunk): string
     {
         // handle single segments delimiter
         if ($chunk == '/') {
@@ -125,7 +143,14 @@ class UrlGenerator
         return implode('/', array_map('rawurlencode', explode('/', $chunk)));
     }
 
-    public function handleParameter($format, $value, $name)
+    /**
+     * @param string $format
+     * @param string $value
+     * @param string $name
+     *
+     * @return string
+     */
+    public function handleParameter(string $format, string $value, string $name)
     {
         return $this->types_handler->handle($format, $value);
     }

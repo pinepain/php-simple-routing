@@ -1,4 +1,4 @@
-<?php
+<?php declare(strict_types=1);
 
 
 namespace Pinepain\SimpleRouting\Chunks;
@@ -8,12 +8,12 @@ class DynamicChunk extends AbstractChunk
 {
     /**
      * @param string $name
-     * @param string|bool $format
+     * @param string $format
      * @param string|null|bool $default
-     * @param string|bool $leading_delimiter
-     * @param string|bool $trailing_delimiter
+     * @param string $leading_delimiter
+     * @param string $trailing_delimiter
      */
-    public function __construct($name, $format = false, $default = false, $leading_delimiter = false, $trailing_delimiter = false)
+    public function __construct(string $name, string $format = '', $default = false, string $leading_delimiter = '', string $trailing_delimiter = '')
     {
         $this->name               = $name;
         $this->format             = $format;

@@ -1,9 +1,10 @@
-<?php
+<?php declare(strict_types=1);
 
 
 namespace Pinepain\SimpleRouting;
 
 
+use Pinepain\SimpleRouting\Chunks\AbstractChunk;
 use Pinepain\SimpleRouting\Chunks\DynamicChunk;
 use Pinepain\SimpleRouting\Chunks\StaticChunk;
 
@@ -11,6 +12,9 @@ class Parser
 {
     const REGEX_DELIMITER = '~';
 
+    /**
+     * @var string
+     */
     private $parameters_regex = '/
         (?<parameter>
         \{
@@ -42,7 +46,7 @@ class Parser
      *
      * @param string $string Route rule string to parse
      *
-     * @return array Array of parsed chunks. String item stands for static part, array - for parameter rule.
+     * @return AbstractChunk[] Array of parsed chunks
      * @throws Exception
      */
     public function parse($string)
@@ -50,6 +54,7 @@ class Parser
         if (!preg_match_all($this->parameters_regex, $string, $matches, PREG_OFFSET_CAPTURE | PREG_SET_ORDER)) {
 
             $chunk = new StaticChunk($this->lintChunk($string, true));
+
             return [$chunk];
         }
 
@@ -78,14 +83,14 @@ class Parser
 
             $names[$name] = $offset;
 
-            $leading_delimiter  = $match['leading_delimiter'][1] > -1 ? $match['leading_delimiter'][0] : false;
-            $trailing_delimiter = false;
+            $leading_delimiter  = $match['leading_delimiter'][1] > -1 ? $match['leading_delimiter'][0] : '';
+            $trailing_delimiter = '';
             if (isset($match['trailing_delimiter'])) {
-                $trailing_delimiter = $match['trailing_delimiter'][1] > -1 ? $match['trailing_delimiter'][0] : false;
+                $trailing_delimiter = $match['trailing_delimiter'][1] > -1 ? $match['trailing_delimiter'][0] : '';
             }
 
             $default = isset($match['default']) && $match['default'][1] > -1 ? $match['default'][0] ?: null : false;
-            $format  = isset($match['format']) ? $match['format'][0] : false;
+            $format  = $match['format'][0] ?? '';
 
             if ($chunk) {
                 $chunks[] = new StaticChunk($chunk);
@@ -98,7 +103,7 @@ class Parser
             $prev = $offset + $length;
         }
 
-        $offset = mb_strlen($string);
+        $offset = (int)mb_strlen($string);
 
         if ($offset > $prev) {
             $chunk = $this->getChunk($string, $prev, $offset, true);
@@ -113,9 +118,9 @@ class Parser
      * Get chunk from route rule string specified with given position
      *
      * @param string $string Route rule string
-     * @param int $from Chunk start position
-     * @param int $to Chunk end position
-     * @param bool $final Whether chunk is final in given rule
+     * @param int    $from   Chunk start position
+     * @param int    $to     Chunk end position
+     * @param bool   $final  Whether chunk is final in given rule
      *
      * @return string
      */
@@ -133,7 +138,7 @@ class Parser
      * Lint chunk string
      *
      * @param string $string
-     * @param bool $final
+     * @param bool   $final
      *
      * @return string
      */

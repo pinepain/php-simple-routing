@@ -1,4 +1,4 @@
-<?php
+<?php declare(strict_types=1);
 
 
 namespace Pinepain\SimpleRouting\Chunks;
@@ -7,33 +7,33 @@ namespace Pinepain\SimpleRouting\Chunks;
 abstract class AbstractChunk
 {
     /**
-     * @var string|null
+     * @var string
      */
-    public $static;
+    public $static = '';
 
     /**
-     * @var string|null
+     * @var string
      */
-    public $name;
+    public $name = '';
     /**
-     * @var bool|string
+     * @var string
      */
-    public $format;
+    public $format = '';
     /**
      * @var bool|null|string
      */
     public $default;
     /**
-     * @var bool|string
+     * @var string
      */
-    public $leading_delimiter;
+    public $leading_delimiter = '';
     /**
-     * @var bool|string
+     * @var string
      */
-    public $trailing_delimiter;
+    public $trailing_delimiter = '';
 
-    public function isStatic()
+    public function isStatic(): bool
     {
-        return null === $this->name;
+        return '' === $this->name;
     }
 }

@@ -35,7 +35,7 @@ class FeaturesTest extends TestCase
             ['word', '[\w]+', ['w']],
             // see http://stackoverflow.com/questions/19256323/regex-to-match-a-slug
             ['slug', '[a-z0-9]+(?:-[a-z0-9]+)*', ['s']],
-            ['path', '.+', 'p'],
+            ['path', '.+', ['p']],
         ];
 
         $collector       = new RoutesCollector(new Parser());
@@ -84,8 +84,6 @@ class FeaturesTest extends TestCase
         $this->assertInstanceOf(Match::class, $res);
         $this->assertSame('with.trailing', $res->handler);
 
-        $res = $router->match('/with/trailing/slash');
-        $this->assertNull($res);
 
         $res = $router->match('/without/trailing/slash');
         $this->assertInstanceOf(Match::class, $res);
@@ -94,6 +92,15 @@ class FeaturesTest extends TestCase
         $res = $router->match('/without/trailing/slash/');
         $this->assertInstanceOf(Match::class, $res);
         $this->assertSame('without.trailing.second', $res->handler);
+    }
+
+    /**
+     * @expectedException \Pinepain\SimpleRouting\NotFoundException
+     * @expectedExceptionMessage Url '/nonexistent' does not match any route
+     */
+    public function testNonexistent() {
+        $router = $this->router;
+        $router->match('/nonexistent');
     }
 
     public function testGenerateUrls() {

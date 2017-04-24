@@ -68,13 +68,5 @@ function handler($homepage) {
     var_dump(func_get_args());
 }
 
-if (!$result) {
-    // not found, do something with it
-    throw new RuntimeException("No match found for '{$url}'");
-} else {
-    list($handler, $variables) = $result;
-
-    // process it, for example
-
-    call_user_func_array($handler, $variables);
-}
+// process it, for example
+call_user_func_array($result->handler, $result->variables);

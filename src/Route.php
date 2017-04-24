@@ -1,4 +1,4 @@
-<?php
+<?php declare(strict_types=1);
 
 
 namespace Pinepain\SimpleRouting;
@@ -13,7 +13,7 @@ class Route
      */
     public $handler;
     /**
-     * @var array|AbstractChunk[]
+     * @var AbstractChunk[]
      */
     public $chunks;
 
@@ -21,7 +21,7 @@ class Route
      * @param string $handler
      * @param AbstractChunk[] $chunks
      */
-    public function __construct($handler, array $chunks)
+    public function __construct(string $handler, array $chunks)
     {
         $this->handler = $handler;
         $this->chunks = $chunks;
