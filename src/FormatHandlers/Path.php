@@ -1,4 +1,4 @@
-<?php
+<?php declare(strict_types=1);
 
 namespace Pinepain\SimpleRouting\FormatHandlers;
 
@@ -6,13 +6,10 @@ use Pinepain\SimpleRouting\Contracts\FormatHandlerInterface;
 
 class Path implements FormatHandlerInterface
 {
-
     /**
-     * @param mixed $value
-     *
-     * @return mixed
+     * {@inheritdoc}
      */
-    public function handle($value)
+    public function handle(string $value): string
     {
         $value      = trim($value, '/');
         $components = explode('/', $value);

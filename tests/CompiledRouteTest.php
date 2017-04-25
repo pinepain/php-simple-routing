@@ -1,4 +1,4 @@
-<?php
+<?php declare(strict_types=1);
 
 namespace Pinepain\SimpleRouting\Tests;
 
@@ -15,10 +15,10 @@ class CompiledRouteTest extends TestCase
      */
     public function testConstructorAndGetters()
     {
-        $route = new CompiledRoute('regex', ['variable' => 'default'], 'bool in real life');
+        $route = new CompiledRoute('regex', ['variable' => 'default'], true);
 
         $this->assertEquals('regex', $route->getRegex());
         $this->assertEquals(['variable' => 'default'], $route->getVariables());
-        $this->assertEquals('bool in real life', $route->hasOptional());
+        $this->assertEquals(true, $route->hasOptional());
     }
 }

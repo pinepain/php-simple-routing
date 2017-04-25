@@ -1,10 +1,12 @@
 <?php
+use Pinepain\SimpleRouting\NotFoundException;
+
 $loader = require __DIR__ . "/vendor/autoload.php";
 
+// composer require "nikic/fast-route":"1.0.*@dev"
+// composer require "symfony/routing":"3.0.*@dev"
 // composer require "aura/router":"3.0.*@dev"
 // composer require "zendframework/zend-diactoros"
-// composer require "symfony/routing":"3.0.*@dev"
-// composer require "nikic/fast-route":"1.0.*@dev"
 
 function dd()
 {
@@ -87,47 +89,34 @@ function simple_bench($nRoutes, $nMatches)
     $dispatcher     = new \Pinepain\SimpleRouting\Matcher($collector->getStaticRoutes(), $generated_data);
 
     // first route
-    $res       = null;
     $startTime = microtime(true);
     for ($i = 0; $i < $nMatches; $i++) {
-        $res = $dispatcher->match($examples[0]);
-        if ($res) {
-            break;
-        }
+        $dispatcher->match($examples[0]);
     }
     printf(str_pad('first', 7, ' ', STR_PAD_LEFT) . " %f\n", microtime(true) - $startTime);
 
     // middle route
     $middle    = min(count($routes), ceil(count($routes) / 2));
-    $res       = null;
     $startTime = microtime(true);
     for ($i = 0; $i < $nMatches; $i++) {
-        $res = $dispatcher->match($examples[$middle]);
-        if ($res) {
-            break;
-        }
+        $dispatcher->match($examples[$middle]);
     }
     printf(str_pad('middle', 7, ' ', STR_PAD_LEFT) . " %f\n", microtime(true) - $startTime);
 
-
     // last route
-    $res       = null;
     $startTime = microtime(true);
     for ($i = 0; $i < $nMatches; $i++) {
-        $res = $dispatcher->match($lastStr);
-        if ($res) {
-            break;
-        }
+        $dispatcher->match($lastStr);
     }
     printf(str_pad('last', 7, ' ', STR_PAD_LEFT) . " %f\n", microtime(true) - $startTime);
 
     // unknown route
-    $res       = null;
     $startTime = microtime(true);
     for ($i = 0; $i < $nMatches; $i++) {
-        $res = $dispatcher->match('/foobar/bar');
-        if ($res) {
-            break;
+        try {
+            $dispatcher->match('/foobar/bar');
+            throw new RuntimeException("Should not happen");
+        } catch (NotFoundException $e) {
         }
     }
     printf(str_pad('unknown', 7, ' ', STR_PAD_LEFT) . " %f\n", microtime(true) - $startTime);
@@ -159,10 +148,9 @@ function fastroutebench($nRoutes, $nMatches)
     $startTime = microtime(true);
     for ($i = 0; $i < $nMatches; $i++) {
         $res = $router->dispatch('GET', $examples[0]);
-        if ($res[0] == $router::FOUND) {
-            break;
+        if ($res[0] != $router::FOUND) {
+            throw new RuntimeException("Should not happen");
         }
-
     }
     printf(str_pad('first', 7, ' ', STR_PAD_LEFT) . " %f\n", microtime(true) - $startTime);
 
@@ -173,8 +161,8 @@ function fastroutebench($nRoutes, $nMatches)
     $startTime = microtime(true);
     for ($i = 0; $i < $nMatches; $i++) {
         $res = $router->dispatch('GET', $examples[$middle]);
-        if ($res[0] == $router::FOUND) {
-            break;
+        if ($res[0] != $router::FOUND) {
+            throw new RuntimeException("Should not happen");
         }
     }
     printf(str_pad('middle', 7, ' ', STR_PAD_LEFT) . " %f\n", microtime(true) - $startTime);
@@ -185,8 +173,8 @@ function fastroutebench($nRoutes, $nMatches)
     $startTime = microtime(true);
     for ($i = 0; $i < $nMatches; $i++) {
         $res = $router->dispatch('GET', $lastStr);
-        if ($res[0] == $router::FOUND) {
-            break;
+        if ($res[0] != $router::FOUND) {
+            throw new RuntimeException("Should not happen");
         }
     }
     printf(str_pad('last', 7, ' ', STR_PAD_LEFT) . " %f\n", microtime(true) - $startTime);
@@ -197,7 +185,7 @@ function fastroutebench($nRoutes, $nMatches)
     for ($i = 0; $i < $nMatches; $i++) {
         $res = $router->dispatch('GET', '/foobar/bar');
         if ($res[0] == $router::FOUND) {
-            break;
+            throw new RuntimeException("Should not happen");
         }
     }
     printf(str_pad('unknown', 7, ' ', STR_PAD_LEFT) . " %f\n", microtime(true) - $startTime);
@@ -228,13 +216,9 @@ function symfonybench($nRoutes, $nMatches)
     $matcher = new Symfony\Component\Routing\Matcher\UrlMatcher($symfony_routes, $context);
 
     // first route
-    $res       = null;
     $startTime = microtime(true);
     for ($i = 0; $i < $nMatches; $i++) {
-        $res = $matcher->match($examples[0]);
-        if ($res) {
-            break;
-        }
+        $matcher->match($examples[0]);
     }
     printf(str_pad('first', 7, ' ', STR_PAD_LEFT) . " : %f\n", microtime(true) - $startTime);
 
@@ -247,10 +231,7 @@ function symfonybench($nRoutes, $nMatches)
     $res       = null;
     $startTime = microtime(true);
     for ($i = 0; $i < $nMatches; $i++) {
-        $res = $matcher->match($examples[$middle]);
-        if ($res) {
-            break;
-        }
+        $matcher->match($examples[$middle]);
     }
     printf(str_pad('middle', 7, ' ', STR_PAD_LEFT) . " : %f\n", microtime(true) - $startTime);
 
@@ -262,29 +243,26 @@ function symfonybench($nRoutes, $nMatches)
     $res       = null;
     $startTime = microtime(true);
     for ($i = 0; $i < $nMatches; $i++) {
-        $res = $matcher->match($lastStr);
-        if ($res) {
-            break;
-        }
+        $matcher->match($lastStr);
     }
     printf(str_pad('last', 7, ' ', STR_PAD_LEFT) . " : %f\n", microtime(true) - $startTime);
 
     // NOTE: too slow
-    //// unknown route
-    //$res = null;
-    //$startTime = microtime(true);
-    //for ($i = 0; $i < $nMatches; $i++) {
-    //    try {
-    //        $res = $matcher->match('/foobar/bar');
-    //    } catch (Exception $e) {
-    //    }
-    //
-    //    if ($res) {
-    //        break;
-    //    }
-    //
-    //}
-    //printf(str_pad('unknown', 7, ' ', STR_PAD_LEFT), " : %f\n", microtime(true) - $startTime);
+    // unknown route
+    $res = null;
+    $startTime = microtime(true);
+    for ($i = 0; $i < $nMatches; $i++) {
+        try {
+            $res = $matcher->match('/foobar/bar');
+        } catch (Exception $e) {
+        }
+
+        if ($res) {
+            throw new RuntimeException("Should not happen");
+        }
+
+    }
+    printf(str_pad('unknown', 7, ' ', STR_PAD_LEFT) . " : %f\n", microtime(true) - $startTime);
 
     echo PHP_EOL;
 }
@@ -328,8 +306,8 @@ function aurabench($nRoutes, $nMatches)
     for ($i = 0; $i < $nMatches; $i++) {
         $r   = $request->withUri($request->getUri()->withPath($examples[0]));
         $res = $matcher->match($r);
-        if ($res) {
-            break;
+        if (!$res) {
+            throw new RuntimeException("Should not happen");
         }
     }
     printf(str_pad('first', 7, ' ', STR_PAD_LEFT) . " %f\n", microtime(true) - $startTime);
@@ -340,8 +318,8 @@ function aurabench($nRoutes, $nMatches)
     for ($i = 0; $i < $nMatches; $i++) {
         $r   = $request->withUri($request->getUri()->withPath($examples[$middle]));
         $res = $matcher->match($r);
-        if ($res) {
-            break;
+        if (!$res) {
+            throw new RuntimeException("Should not happen");
         }
     }
     printf(str_pad('middle', 7, ' ', STR_PAD_LEFT) . " %f\n", microtime(true) - $startTime);
@@ -352,33 +330,33 @@ function aurabench($nRoutes, $nMatches)
     for ($i = 0; $i < $nMatches; $i++) {
         $r   = $request->withUri($request->getUri()->withPath($lastStr));
         $res = $matcher->match($r);
-        if ($res) {
-            break;
+        if (!$res) {
+            throw new RuntimeException("Should not happen");
         }
     }
     printf(str_pad('last', 7, ' ', STR_PAD_LEFT) . " %f\n", microtime(true) - $startTime);
 
     // NOTE: it's very slow, so we simply disable it
-    //// unknown route
-    //$res = null;
-    //$startTime = microtime(true);
-    //for ($i = 0; $i < $nMatches; $i++) {
-    //    $r = $request->withUri($request->getUri()->withPath('/foobar/bar'));
-    //    $res = $matcher->match($r);
-    //    if ($res) {
-    //        break;
-    //    }
-    //}
-    //printf(str_pad('unknown', 7, ' ', STR_PAD_LEFT) . " %f\n", microtime(true) - $startTime);
+    // unknown route
+    $res = null;
+    $startTime = microtime(true);
+    for ($i = 0; $i < $nMatches; $i++) {
+        $r = $request->withUri($request->getUri()->withPath('/foobar/bar'));
+        $res = $matcher->match($r);
+        if ($res) {
+            throw new RuntimeException("Should not happen");
+        }
+    }
+    printf(str_pad('unknown', 7, ' ', STR_PAD_LEFT) . " %f\n", microtime(true) - $startTime);
 
     echo PHP_EOL;
 }
 
 $nRoutes  = 100;
-$nMatches = 100000;
+$nMatches = $argv[1] ?? 100000;
 echo "No of routes is {$nRoutes} and matches {$nMatches} \n\n";
 simple_bench($nRoutes, $nMatches);
 fastroutebench($nRoutes, $nMatches);
 // that stuff is a bit slow, so not necessary to compare at all, but if you want - go on
-symfonybench($nRoutes, $nMatches);
-aurabench($nRoutes, $nMatches);
+//symfonybench($nRoutes, $nMatches);
+//aurabench($nRoutes, $nMatches);

@@ -1,8 +1,11 @@
-<?php
+<?php declare(strict_types=1);
 
 
 namespace Pinepain\SimpleRouting\Solutions;
 
+
+use Pinepain\SimpleRouting\Match;
+use Pinepain\SimpleRouting\Route;
 
 class AdvancedRouter implements RouterInterface
 {
@@ -25,7 +28,7 @@ class AdvancedRouter implements RouterInterface
      */
     private $router;
     /**
-     * @var null
+     * @var int
      */
     private $trailing_slashes_policy;
 
@@ -33,7 +36,7 @@ class AdvancedRouter implements RouterInterface
      * @param SimpleRouter $router
      * @param int $trailing_slashes_policy
      */
-    public function __construct(SimpleRouter $router, $trailing_slashes_policy = self::NO_TRAILING_SLASH_POLICY)
+    public function __construct(SimpleRouter $router, int $trailing_slashes_policy = self::NO_TRAILING_SLASH_POLICY)
     {
         $this->router                  = $router;
         $this->trailing_slashes_policy = $trailing_slashes_policy;
@@ -42,7 +45,7 @@ class AdvancedRouter implements RouterInterface
     /**
      * {@inheritdoc}
      */
-    public function add($route, $handler)
+    public function add(string $route, string $handler): Route
     {
         $route = $this->enforceTrailingSlashPolicy($route, self::ENFORCE_TRAILING_SLASHES_IN_RULE, self::REMOVE_TRAILING_SLASHES_IN_RULE);
 
@@ -52,7 +55,7 @@ class AdvancedRouter implements RouterInterface
     /**
      * {@inheritdoc}
      */
-    public function match($url)
+    public function match(string $url): Match
     {
         $url = $this->enforceTrailingSlashPolicy($url, self::ENFORCE_TRAILING_SLASHES_IN_MATCH, self::REMOVE_TRAILING_SLASHES_IN_MATCH);
 
@@ -62,7 +65,7 @@ class AdvancedRouter implements RouterInterface
     /**
      * {@inheritdoc}
      */
-    public function url($handler, array $arguments = [], $full = false)
+    public function url(string $handler, array $arguments = [], bool $full = false): string
     {
         $generated = $this->router->url($handler, $arguments, $full);
 
@@ -71,7 +74,14 @@ class AdvancedRouter implements RouterInterface
         return $generated;
     }
 
-    protected function enforceTrailingSlashPolicy($string, $mask_to_enforce, $mask_to_remove)
+    /**
+     * @param string $string
+     * @param int    $mask_to_enforce
+     * @param int    $mask_to_remove
+     *
+     * @return string
+     */
+    protected function enforceTrailingSlashPolicy(string $string, int $mask_to_enforce, int $mask_to_remove): string
     {
         if ($mask_to_enforce & $this->trailing_slashes_policy) {
             return rtrim($string, '/') . '/';

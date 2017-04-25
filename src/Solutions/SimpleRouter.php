@@ -1,9 +1,11 @@
-<?php
+<?php declare(strict_types=1);
 
 
 namespace Pinepain\SimpleRouting\Solutions;
 
+use Pinepain\SimpleRouting\Match;
 use Pinepain\SimpleRouting\Matcher;
+use Pinepain\SimpleRouting\Route;
 use Pinepain\SimpleRouting\RoutesCollector;
 use Pinepain\SimpleRouting\RulesGenerator;
 use Pinepain\SimpleRouting\UrlGenerator;
@@ -39,7 +41,7 @@ class SimpleRouter implements RouterInterface
     /**
      * {@inheritdoc}
      */
-    public function add($route, $handler)
+    public function add(string $route, string $handler): Route
     {
         return $this->collector->add($route, $handler);
     }
@@ -47,7 +49,7 @@ class SimpleRouter implements RouterInterface
     /**
      * {@inheritdoc}
      */
-    public function match($url)
+    public function match(string $url): Match
     {
         $dynamic_routes = $this->collector->getDynamicRoutes();
         $static_routes  = $this->collector->getStaticRoutes();
@@ -63,7 +65,7 @@ class SimpleRouter implements RouterInterface
     /**
      * {@inheritdoc}
      */
-    public function url($handler, array $arguments = [], $full = false)
+    public function url(string $handler, array $arguments = [], bool $full = false): string
     {
         $this->url_generator->setMapFromRoutesCollector($this->collector);
 

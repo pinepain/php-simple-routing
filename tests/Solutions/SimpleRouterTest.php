@@ -1,9 +1,11 @@
-<?php
+<?php declare(strict_types=1);
 
 namespace Pinepain\SimpleRouting\Tests\Solutions;
 
 use PHPUnit\Framework\TestCase;
+use Pinepain\SimpleRouting\Match;
 use Pinepain\SimpleRouting\Matcher;
+use Pinepain\SimpleRouting\Route;
 use Pinepain\SimpleRouting\RoutesCollector;
 use Pinepain\SimpleRouting\RulesGenerator;
 use Pinepain\SimpleRouting\Solutions\SimpleRouter;
@@ -41,18 +43,18 @@ class SimpleRouterTest extends TestCase
         $collector->expects($this->at(0))
                   ->method('add')
                   ->with('route-1', 'handler-1')
-                  ->willReturn('parsed-1');
+                  ->willReturn(new Route('parsed-1', ['test-1']));
 
         $collector->expects($this->at(1))
                   ->method('add')
                   ->with('route-2', 'handler-2')
-                  ->willReturn('parsed-2');
+                  ->willReturn(new Route('parsed-2', ['test-2']));
 
 
         $router = new SimpleRouter($collector, $generator, $matcher, $url_generator);
 
-        $this->assertEquals('parsed-1', $router->add('route-1', 'handler-1'));
-        $this->assertEquals('parsed-2', $router->add('route-2', 'handler-2'));
+        $this->assertEquals(new Route('parsed-1', ['test-1']), $router->add('route-1', 'handler-1'));
+        $this->assertEquals(new Route('parsed-2', ['test-2']), $router->add('route-2', 'handler-2'));
     }
 
     /**
@@ -104,7 +106,9 @@ class SimpleRouterTest extends TestCase
         $matcher->expects($this->exactly(2))
                 ->method('match')
                 ->withConsecutive(['url-1'], ['url-2'])
-                ->willReturnOnConsecutiveCalls(['handler-1', 'variables-1'], ['handler-2', 'variables-2']);
+                ->willReturnOnConsecutiveCalls(
+                    new Match('handler-1', ['variables-1']),
+                    new Match('handler-2', ['variables-2']));
 
         /** @var UrlGenerator | \PHPUnit_Framework_MockObject_MockObject $url_generator */
         $url_generator = $this->getMockBuilder(UrlGenerator::class)
@@ -113,8 +117,8 @@ class SimpleRouterTest extends TestCase
 
         $router = new SimpleRouter($collector, $generator, $matcher, $url_generator);
 
-        $this->assertSame(['handler-1', 'variables-1'], $router->match('url-1'));
-        $this->assertSame(['handler-2', 'variables-2'], $router->match('url-2'));
+        $this->assertEquals(new Match('handler-1', ['variables-1']), $router->match('url-1'));
+        $this->assertEquals(new Match('handler-2', ['variables-2']), $router->match('url-2'));
     }
 
     /**

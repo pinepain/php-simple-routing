@@ -1,4 +1,4 @@
-<?php
+<?php declare(strict_types=1);
 
 
 namespace Pinepain\SimpleRouting\Contracts;
@@ -7,9 +7,9 @@ namespace Pinepain\SimpleRouting\Contracts;
 interface FormatHandlerInterface
 {
     /**
-     * @param mixed $value
+     * @param string $value
      *
-     * @return mixed
+     * @return string
      */
-    public function handle($value);
+    public function handle(string $value);
 }

@@ -1,4 +1,4 @@
-<?php
+<?php declare(strict_types=1);
 
 
 namespace Pinepain\SimpleRouting\Tests\Filters;
@@ -15,7 +15,7 @@ class FormatsCollectionTest extends TestCase
         ['word', '[\w]+', ['w']],
         // see http://stackoverflow.com/questions/19256323/regex-to-match-a-slug
         ['slug', '[a-z0-9]+(?:-[a-z0-9]+)*', ['s']],
-        ['path', '.+', 'p'],
+        ['path', '.+', ['p']],
     ];
 
     /**
@@ -27,7 +27,7 @@ class FormatsCollectionTest extends TestCase
     {
         $collection = new FormatsCollection($this->preset);
 
-        $this->assertNull($collection->find('nonexistent'));
+        $this->assertSame('', $collection->find('nonexistent'));
         $this->assertSame('[^/]+', $collection->find('segment'));
         $this->assertSame('[^/]+', $collection->find('default'));
     }
@@ -42,7 +42,7 @@ class FormatsCollectionTest extends TestCase
 
         $collection->add('test', 'regex', ['test-alias-1', 'test-alias-2']);
 
-        $this->assertNull($collection->find('nonexistent'));
+        $this->assertSame('', $collection->find('nonexistent'));
         $this->assertSame('regex', $collection->find('test'));
         $this->assertSame('regex', $collection->find('test-alias-1'));
         $this->assertSame('regex', $collection->find('test-alias-2'));
@@ -58,8 +58,8 @@ class FormatsCollectionTest extends TestCase
 
         $collection->remove('segment');
 
-        $this->assertNull($collection->find('nonexistent'));
-        $this->assertNull($collection->find('segment'));
-        $this->assertNull($collection->find('default'));
+        $this->assertSame('', $collection->find('nonexistent'));
+        $this->assertSame('', $collection->find('segment'));
+        $this->assertSame('', $collection->find('default'));
     }
 }

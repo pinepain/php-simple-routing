@@ -1,4 +1,4 @@
-<?php
+<?php declare(strict_types=1);
 
 namespace Pinepain\SimpleRouting\Tests\Filters;
 
@@ -45,7 +45,7 @@ class FormatsTest extends TestCase
         $collection->expects($this->at(2))
                    ->method('find')
                    ->with('missed')
-                   ->willReturn(null);
+                   ->willReturn('');
 
 
         /** @var Formats | \PHPUnit_Framework_MockObject_MockObject $filter */
@@ -61,7 +61,7 @@ class FormatsTest extends TestCase
         $parsed = [
             new StaticChunk('static'),
             new DynamicChunk('test-found', 'found', 'default', 'delimiter'),
-            new DynamicChunk('test-default', null, 'default', 'delimiter'),
+            new DynamicChunk('test-default', '', 'default', 'delimiter'),
             new DynamicChunk('test-missed', 'missed', 'default', 'delimiter'),
         ];
 

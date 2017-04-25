@@ -1,4 +1,4 @@
-<?php
+<?php declare(strict_types=1);
 
 
 namespace Pinepain\SimpleRouting;
@@ -15,16 +15,16 @@ class RulesGenerator
     /**
      * @var CompilerFilterInterface
      */
-    private $compiler;
-
-    /**
-     * @var Filter
-     */
     private $filter;
 
     /**
+     * @var Compiler
+     */
+    private $compiler;
+
+    /**
      * @param CompilerFilterInterface $filter
-     * @param Compiler $compiler
+     * @param Compiler                $compiler
      */
     public function __construct(CompilerFilterInterface $filter, Compiler $compiler)
     {
@@ -32,24 +32,37 @@ class RulesGenerator
         $this->compiler = $compiler;
     }
 
-    public function getApproxChunkSize()
+    /**
+     * @return int
+     */
+    public function getApproxChunkSize(): int
     {
         return 10;
     }
 
-    public function calcChunkSize($size)
+    /**
+     * @param int $size
+     *
+     * @return int
+     */
+    public function calcChunkSize(int $size): int
     {
         $num = max(1, round($size / $this->getApproxChunkSize()));
 
-        return ceil($size / $num);
+        return (int)ceil($size / $num);
     }
 
-
+    /**
+     * @param Route[] $routes
+     *
+     * @return Chunk[]
+     */
     public function generate(array $routes)
     {
         $chunks_number = $this->calcChunkSize(count($routes));
         $chunks_routes = $chunks_number ? array_chunk($routes, $chunks_number, true) : [];
 
+        /** @var Chunk[] $chunks */
         $chunks = array_map([$this, 'generateChunk'], $chunks_routes);
 
         return $chunks;
@@ -58,9 +71,9 @@ class RulesGenerator
     /**
      * @param Route[] $routes
      *
-     * @return array
+     * @return Chunk
      */
-    public function generateChunk(array $routes)
+    public function generateChunk(array $routes): Chunk
     {
         $num_groups = 1;
         $regexes    = [];
@@ -68,11 +81,8 @@ class RulesGenerator
         $routes_map = [];
 
         foreach ($routes as $rule => $route) {
-
-            $chunks   = $this->filter->filter($route->chunks);
-            $compiled = $this->compiler->compile($chunks);
-
-            /** @var $compiled CompiledRoute */
+            $chunks    = $this->filter->filter($route->chunks);
+            $compiled  = $this->compiler->compile($chunks);
             $variables = $compiled->getVariables();
 
             $num_variables = count($variables);
@@ -84,14 +94,13 @@ class RulesGenerator
 
             $regexes[] = $compiled->getRegex() . str_repeat('()', $num_groups - $num_variables);
 
-            $routes_map[$num_groups + 1] = [$route->handler, $variables]; // +1 because of 0-match (whole given string)
+            $routes_map[$num_groups + 1] = new Crumb($route->handler, $variables); // +1 because of 0-match (whole given string)
 
             $num_groups++;
         }
 
         $regex = static::REGEX_DELIMITER . '^(?|' . implode('|', $regexes) . ')$' . static::REGEX_DELIMITER;
 
-        return [$regex, $routes_map];
-
+        return new Chunk($regex, $routes_map);
     }
 }

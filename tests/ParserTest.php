@@ -1,4 +1,4 @@
-<?php
+<?php declare(strict_types=1);
 
 
 namespace Pinepain\SimpleRouting\Tests\Parser;
@@ -50,7 +50,6 @@ class ParserTest extends TestCase
 
     }
 
-
     /**
      * @covers \Pinepain\SimpleRouting\Parser::parse
      */
@@ -99,7 +98,7 @@ class ParserTest extends TestCase
         $this->assertEquals(
             [
                 new StaticChunk('/with'),
-                new DynamicChunk('delimiter', false, false, '/'),
+                new DynamicChunk('delimiter', '', false, '/'),
             ],
             $parser->parse('/with{/delimiter}')
         );
@@ -107,7 +106,7 @@ class ParserTest extends TestCase
         $this->assertEquals(
             [
                 new StaticChunk('/with'),
-                new DynamicChunk('delimiter', false, false, false, '/'),
+                new DynamicChunk('delimiter', '', false, '', '/'),
             ],
             $parser->parse('/with{delimiter/}')
         );
@@ -115,7 +114,7 @@ class ParserTest extends TestCase
         $this->assertEquals(
             [
                 new StaticChunk('/with'),
-                new DynamicChunk('delimiter', false, false, '/', '/'),
+                new DynamicChunk('delimiter', '', false, '/', '/'),
             ],
             $parser->parse('/with{/delimiter/}')
         );
@@ -123,7 +122,7 @@ class ParserTest extends TestCase
         $this->assertEquals(
             [
                 new StaticChunk('/with'),
-                new DynamicChunk('delimiter', false, false, '/', '/'),
+                new DynamicChunk('delimiter', '', false, '/', '/'),
                 new StaticChunk('test'),
             ],
             $parser->parse('/with{/delimiter/}test')
@@ -132,7 +131,7 @@ class ParserTest extends TestCase
         $this->assertEquals(
             [
                 new StaticChunk('/with/'),
-                new DynamicChunk('optional', false, null),
+                new DynamicChunk('optional', '', null),
             ],
             $parser->parse('/with/{optional?}')
         );
@@ -140,7 +139,7 @@ class ParserTest extends TestCase
         $this->assertEquals(
             [
                 new StaticChunk('/with'),
-                new DynamicChunk('optional_delimiter', false, null, '/'),
+                new DynamicChunk('optional_delimiter', '', null, '/'),
             ],
             $parser->parse('/with{/optional_delimiter?}')
         );
@@ -148,7 +147,7 @@ class ParserTest extends TestCase
         $this->assertEquals(
             [
                 new StaticChunk('/with/'),
-                new DynamicChunk('optional_delimiter', false, null, false, '/'),
+                new DynamicChunk('optional_delimiter', '', null, '', '/'),
             ],
             $parser->parse('/with/{optional_delimiter/?}')
         );
@@ -156,7 +155,7 @@ class ParserTest extends TestCase
         $this->assertEquals(
             [
                 new StaticChunk('/with/'),
-                new DynamicChunk('default', false, 'value'),
+                new DynamicChunk('default', '', 'value'),
             ],
             $parser->parse('/with/{default?value}')
         );
@@ -182,7 +181,7 @@ class ParserTest extends TestCase
                 new StaticChunk('/with/'),
                 new DynamicChunk('param'),
                 new StaticChunk('/static'),
-                new DynamicChunk('inside', false, false, '/'),
+                new DynamicChunk('inside', '', false, '/'),
             ],
             $parser->parse('/with/{param}/static{/inside}')
         );
@@ -193,9 +192,40 @@ class ParserTest extends TestCase
                 new DynamicChunk('params'),
                 new DynamicChunk('one'),
                 new DynamicChunk('by'),
-                new DynamicChunk('one_', false, false, '/'),
+                new DynamicChunk('one_', '', false, '/'),
             ],
             $parser->parse('/with/{params}{one}{by}{/one_}')
+        );
+    }
+
+
+    public function testParseWithEmptyFormat() {
+        $parser = $this->parser;
+
+        $this->assertEquals(
+            [
+                new StaticChunk('/with/'),
+                new DynamicChunk('format', ''),
+            ],
+            $parser->parse('/with/{format:}')
+        );
+    }
+
+    public function testParseWithEmptyName() {
+        $parser = $this->parser;
+
+        $this->assertEquals(
+            [
+                new StaticChunk('/with/{}'),
+            ],
+            $parser->parse('/with/{}')
+        );
+
+        $this->assertEquals(
+            [
+                new StaticChunk('/with/{/}'),
+            ],
+            $parser->parse('/with/{/}')
         );
     }
 

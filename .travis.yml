@@ -11,10 +11,8 @@ before_script:
 
 script:
   - vendor/bin/phpunit --coverage-text --configuration phpunit.xml
+  - vendor/bin/psalm
 
-  - composer require "aura/router":"3.0.*@dev"
-  - composer require "zendframework/zend-diactoros"
-  - composer require "symfony/routing":"3.0.*@dev"
   - composer require "nikic/fast-route":"1.0.*@dev"
 
   - php bench.php

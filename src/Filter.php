@@ -1,41 +1,52 @@
-<?php
+<?php declare(strict_types=1);
 
 
 namespace Pinepain\SimpleRouting;
 
 
+use Pinepain\SimpleRouting\Chunks\AbstractChunk;
 use Pinepain\SimpleRouting\Contracts\CompilerFilterInterface;
 
 
 class Filter implements CompilerFilterInterface
 {
     /**
-     * @var array|Contracts\CompilerFilterInterface[]
+     * @var CompilerFilterInterface[]
      */
-    private $filters;
+    private $filters = [];
 
     /**
-     * @param \Pinepain\SimpleRouting\Contracts\CompilerFilterInterface[] $filters
+     * @param CompilerFilterInterface[] $filters
      */
     public function __construct(array $filters = [])
     {
         $this->setFilters($filters);
     }
 
-    public function getFilters()
+    /**
+     * @return CompilerFilterInterface[]
+     */
+    public function getFilters(): array
     {
         return $this->filters;
     }
 
     /**
-     * @param \Pinepain\SimpleRouting\Contracts\CompilerFilterInterface[] $filters
+     * @param CompilerFilterInterface[] $filters
+     *
+     * @return void
      */
     public function setFilters(array $filters = [])
     {
         $this->filters = $filters;
     }
 
-    public function filter(array $parsed)
+    /**
+     * @param AbstractChunk[] $parsed
+     *
+     * @return AbstractChunk[]
+     */
+    public function filter(array $parsed): array
     {
         foreach ($this->getFilters() as $filter) {
             $parsed = $filter->filter($parsed);

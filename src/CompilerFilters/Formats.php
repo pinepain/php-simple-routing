@@ -1,4 +1,4 @@
-<?php
+<?php declare(strict_types=1);
 
 namespace Pinepain\SimpleRouting\CompilerFilters;
 
@@ -13,25 +13,26 @@ class Formats implements CompilerFilterInterface
      * @var FormatsCollection
      */
     private $formats;
+    /**
+     * @var string
+     */
     private $default_format;
 
-    public function __construct(FormatsCollection $formats, $default_format = 'default')
+    public function __construct(FormatsCollection $formats, string $default_format = 'default')
     {
         $this->formats        = $formats;
         $this->default_format = $default_format;
     }
 
-    public function handleMissedFormat($name, $format)
+    public function handleMissedFormat(string $name, string $format): string
     {
         return $format;
     }
 
     /**
-     * @param string[]|DynamicChunk[] $parsed
-     *
-     * @return array
+     * {@inheritdoc}
      */
-    public function filter(array $parsed)
+    public function filter(array $parsed): array
     {
         $result = [];
 

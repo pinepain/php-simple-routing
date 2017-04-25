@@ -1,4 +1,4 @@
-<?php
+<?php declare(strict_types=1);
 
 
 namespace Pinepain\SimpleRouting;
@@ -8,6 +8,9 @@ use Pinepain\SimpleRouting\Chunks\AbstractChunk;
 
 class RoutesCollector
 {
+    /**
+     * @var Parser
+     */
     private $parser;
 
     /**
@@ -30,12 +33,12 @@ class RoutesCollector
 
     /**
      * @param string $route
-     * @param $handler
+     * @param string $handler
      *
      * @return Route
      * @throws Exception
      */
-    public function add($route, $handler)
+    public function add(string $route, string $handler)
     {
         if (isset($this->static[$route]) || isset($this->dynamic[$route])) {
             throw new Exception("Route '{$route}' already registered");
@@ -43,13 +46,15 @@ class RoutesCollector
 
         $parsed = $this->parser->parse($route);
 
+        $r = new Route($handler, $parsed);
+
         if ($this->isStatic($parsed)) {
-            $this->static[$route] = new Route($handler, $parsed);
+            $this->static[$route] = $r;
         } else {
-            $this->dynamic[$route] = new Route($handler, $parsed);
+            $this->dynamic[$route] = $r;
         }
 
-        return $parsed;
+        return $r;
     }
 
     /**

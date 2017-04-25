@@ -72,22 +72,14 @@ parameters support (optional parameters, default values, etc.).
     
     $url = '/some/homepage';
     
-    $result = $router->match($url);
     
     function handler($homepage) {
         var_dump(func_get_args());
     }
     
-    if (!$result) {
-        // not found, do something with it
-        throw new RuntimeException("No match found for '{$url}'");
-    } else {
-        list($handler, $variables) = $result;
+    $result = $router->match($url);
     
-        // process it, for example
-    
-        call_user_func_array($handler, $variables);
-    }
+    call_user_func_array($result->handler, $result->variables);
 ```
     
 *Note: While this framework is rather set of blocks it was built with mind and hope that you will use some IoC container,

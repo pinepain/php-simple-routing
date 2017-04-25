@@ -1,4 +1,4 @@
-<?php
+<?php declare(strict_types=1);
 
 
 namespace Pinepain\SimpleRouting;
@@ -80,13 +80,14 @@ class Compiler
      * @param $format_regex
      *
      * @throws Exception
-     * @return null
+     * @return void
      */
     public function validateFormat($name, $format_regex)
     {
         // validate regex and check for nested catching groups
         $re_test_syntax = "~{$format_regex}~x";
 
+        $matches_test_syntax = [];
         $result = @preg_match($re_test_syntax, 'test', $matches_test_syntax);
 
         if ($result === false) {

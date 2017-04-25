@@ -1,4 +1,4 @@
-<?php
+<?php declare(strict_types=1);
 
 
 namespace Pinepain\SimpleRouting;
@@ -20,7 +20,7 @@ class CompiledRoute
      */
     private $has_optional;
 
-    public function __construct($regex, $variables, $has_optional)
+    public function __construct(string $regex, array $variables, bool $has_optional)
     {
         $this->regex        = $regex;
         $this->variables    = $variables;
@@ -30,7 +30,7 @@ class CompiledRoute
     /**
      * @return string
      */
-    public function getRegex()
+    public function getRegex(): string
     {
         return $this->regex;
     }
@@ -38,7 +38,7 @@ class CompiledRoute
     /**
      * @return array
      */
-    public function getVariables()
+    public function getVariables(): array
     {
         return $this->variables;
     }
@@ -46,7 +46,7 @@ class CompiledRoute
     /**
      * @return boolean
      */
-    public function hasOptional()
+    public function hasOptional(): bool
     {
         return $this->has_optional;
     }

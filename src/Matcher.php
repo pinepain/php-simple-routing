@@ -1,4 +1,4 @@
-<?php
+<?php declare(strict_types=1);
 
 
 namespace Pinepain\SimpleRouting;
@@ -9,15 +9,15 @@ class Matcher
     /**
      * @var Route[]
      */
-    private $static_rules;
+    private $static_rules = [];
     /**
-     * @var array
+     * @var Chunk[]
      */
-    private $dynamic_rules;
+    private $dynamic_rules = [];
 
     /**
-     * @param array $static_rules
-     * @param array $dynamic_rules
+     * @param Route[] $static_rules
+     * @param Chunk[] $dynamic_rules
      */
     public function __construct(array $static_rules = [], array $dynamic_rules = [])
     {
@@ -25,11 +25,19 @@ class Matcher
         $this->setDynamicRules($dynamic_rules);
     }
 
+    /**
+     * @param Route[] $static_rules
+     * @return void
+     */
     public function setStaticRules(array $static_rules)
     {
         $this->static_rules = $static_rules;
     }
 
+    /**
+     * @param Chunk[] $dynamic_rules
+     * @return void
+     */
     public function setDynamicRules(array $dynamic_rules)
     {
         $this->dynamic_rules = $dynamic_rules;
@@ -38,9 +46,9 @@ class Matcher
     /**
      * @param string $url
      *
-     * @return array|mixed|null
+     * @return Match
      */
-    public function match($url)
+    public function match(string $url)
     {
         if (isset($this->static_rules[$url])) {
             $route = $this->static_rules[$url];
@@ -51,24 +59,37 @@ class Matcher
         return $this->matchDynamicRoute($this->dynamic_rules, $url);
     }
 
-    public function matchDynamicRoute($rules, $url)
+    /**
+     * @param Chunk[] $chunks
+     * @param string  $url
+     *
+     * @return Match
+     * @throws NotFoundException
+     */
+    public function matchDynamicRoute(array $chunks, string $url)
     {
-        foreach ($rules as $rule) {
-            list($regex, $map) = $rule;
-            if (!preg_match($regex, $url, $matches)) {
+        foreach ($chunks as $chunk) {
+
+            if (!preg_match($chunk->regex, $url, $matches)) {
                 continue;
             }
 
-            list ($handler, $variables) = $map[count($matches)];
+            $crumb = $chunk->crumbs[count($matches)];
 
-            $resolved_variables = $this->extractVariablesFromMatches($matches, $variables);
+            $resolved_variables = $this->extractVariablesFromMatches($matches, $crumb->variables);
 
-            return new Match($handler, $resolved_variables);
+            return new Match($crumb->handler, $resolved_variables);
         }
 
-        return null;
+        throw new NotFoundException("Url '{$url}' does not match any route");
     }
 
+    /**
+     * @param array $matches
+     * @param array $variables
+     *
+     * @return array
+     */
     public function extractVariablesFromMatches(array $matches, array $variables)
     {
         $result = [];

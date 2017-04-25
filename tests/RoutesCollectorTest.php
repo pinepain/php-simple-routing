@@ -1,4 +1,4 @@
-<?php
+<?php declare(strict_types=1);
 
 
 namespace Pinepain\SimpleRouting\Tests;
@@ -61,9 +61,9 @@ class RoutesCollectorTest extends TestCase
 
         $collector = new RoutesCollector($parser);
 
-        $this->assertEquals([new StaticChunk('parsed test route 1')], $collector->add('test route 1', 'test handler 1'));
-        $this->assertEquals([new StaticChunk('parsed test route 2')], $collector->add('test route 2', 'test handler 2'));
-        $this->assertEquals([new StaticChunk('parsed test route 3')], $collector->add('test route 3', 'test handler 3'));
+        $this->assertEquals(new Route('test handler 1', [new StaticChunk('parsed test route 1')]), $collector->add('test route 1', 'test handler 1'));
+        $this->assertEquals(new Route('test handler 2', [new StaticChunk('parsed test route 2')]), $collector->add('test route 2', 'test handler 2'));
+        $this->assertEquals(new Route('test handler 3', [new StaticChunk('parsed test route 3')]), $collector->add('test route 3', 'test handler 3'));
 
 
         $static_routes = [
@@ -99,10 +99,10 @@ class RoutesCollectorTest extends TestCase
         $collector = new RoutesCollector($parser);
 
 
-        $this->assertEquals(['dynamic', 'test route 1'], $collector->add('test route 1', 'test handler 1'));
-        $this->assertEquals(['dynamic', 'test route 2'], $collector->add('test route 2', 'test handler 2'));
-        $this->assertEquals(['dynamic', 'test route 3'], $collector->add('test route 3', 'test handler 3'));
-        $this->assertEquals(['dynamic', '/test-route-4'], $collector->add('/test-route-4', 'test handler 4'));
+        $this->assertEquals(new Route('test handler 1', ['dynamic', 'test route 1']), $collector->add('test route 1', 'test handler 1'));
+        $this->assertEquals(new Route('test handler 2', ['dynamic', 'test route 2']), $collector->add('test route 2', 'test handler 2'));
+        $this->assertEquals(new Route('test handler 3', ['dynamic', 'test route 3']), $collector->add('test route 3', 'test handler 3'));
+        $this->assertEquals(new Route('test handler 4', ['dynamic', '/test-route-4']), $collector->add('/test-route-4', 'test handler 4'));
 
 
         $dynamic_routes = [

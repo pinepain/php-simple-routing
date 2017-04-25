@@ -1,4 +1,4 @@
-<?php
+<?php declare(strict_types=1);
 
 
 namespace Pinepain\SimpleRouting\Tests;
@@ -111,7 +111,7 @@ class CompilerTest extends TestCase
         $this->assertEquals('static/(format)/test', $res->getRegex());
         $this->assertSame(['param' => false], $res->getVariables());
 
-        $res = $compiler->compile([new StaticChunk('static'), new DynamicChunk('param', 'format', false, false, '/')]);
+        $res = $compiler->compile([new StaticChunk('static'), new DynamicChunk('param', 'format', false, '', '/')]);
         $this->assertInstanceOf(CompiledRoute::class, $res);
         $this->assertEquals('static(format)/', $res->getRegex());
         $this->assertSame(['param' => false], $res->getVariables());
@@ -131,7 +131,7 @@ class CompilerTest extends TestCase
         $this->assertEquals('static(?:/(format))?', $res->getRegex());
         $this->assertSame(['param' => null], $res->getVariables());
 
-        $res = $compiler->compile([new StaticChunk('static'), new DynamicChunk('param', 'format', null, false, '/')]);
+        $res = $compiler->compile([new StaticChunk('static'), new DynamicChunk('param', 'format', null, '', '/')]);
         $this->assertInstanceOf(CompiledRoute::class, $res);
         $this->assertEquals('static(?:(format)/)?', $res->getRegex());
         $this->assertSame(['param' => null], $res->getVariables());
