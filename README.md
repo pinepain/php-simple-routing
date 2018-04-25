@@ -1,3 +1,6 @@
+WARNING: This project is UNSUPPORTED and ABANDONED
+==================================================
+
 # Php Simple Router
 
 [![Build Status](https://travis-ci.org/pinepain/php-simple-routing.svg)](https://travis-ci.org/pinepain/php-simple-routing)
